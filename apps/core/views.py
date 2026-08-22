@@ -1,6 +1,6 @@
 """
 Home dashboard — the tile grid you land on after logging in.
-Includes overview stats for Notes, Checklist, Reminders, Salah Timings, Quran Tracker, Hadith, Books Library, and Movies.
+Includes overview stats for Notes, Checklist, Reminders, Salah Timings, Quran Tracker, Hadith, Books Library, Movies, and Streaks.
 """
 from datetime import date
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -17,6 +17,8 @@ from apps.reminders.models import Reminder
 from apps.reminders.services import get_and_process_due_reminders
 from apps.salah.models import SalahDailyLog, SalahPreference
 from apps.salah.services import get_prayer_timings
+from apps.streaks.models import Habit
+from apps.streaks.services import ensure_default_habits, get_habit_stats
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
@@ -73,5 +75,21 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context["movies_watched_count"] = user_movies.filter(status="watched").count()
         context["movies_plan_count"] = user_movies.filter(status="plan_to_watch").count()
         context["latest_movie"] = user_movies.order_by("-updated_at").first()
+
+        # Streak Tracker stats
+        ensure_default_habits(user)
+        user_habits = Habit.objects.filter(user=user, is_active=True)
+        max_streak = 0
+        done_today = 0
+        for h in user_habits:
+            st = get_habit_stats(h)
+            if st["completed_today"]:
+                done_today += 1
+            if st["current_streak"] > max_streak:
+                max_streak = st["current_streak"]
+
+        context["streak_max_days"] = max_streak
+        context["streak_done_today"] = done_today
+        context["streak_total_habits"] = user_habits.count()
 
         return context

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}Add Custom Streak{% endif %} — Personal App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h3 fw-bold mb-0">
+        <i class="bi bi-fire text-danger me-2"></i>
+        {% if form.instance.pk %}Edit Streak Target{% else %}Add Custom Target / Habit{% endif %}
+      </h1>
+      <a href="{% url 'streaks:dashboard' %}" class="btn btn-outline-secondary btn-sm">&larr; Back to Streaks</a>
+    </div>
+
+    <div class="card shadow-sm border-0 bg-body-tertiary rounded-4 p-4 p-md-5">
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">Streak Target Name *</label>
+          {{ form.name }}
+          <div class="form-text">e.g. Exercise 30 Mins, Read 20 Pages, Drink 3L Water...</div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">Category</label>
+            {{ form.category }}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.color_class.id_for_label }}" class="form-label fw-semibold">Theme Color</label>
+            {{ form.color_class }}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.icon.id_for_label }}" class="form-label fw-semibold">Bootstrap Icon Class</label>
+          {{ form.icon }}
+          <div class="form-text">e.g. bi-git, bi-code-slash, bi-book, bi-briefcase, bi-heart-pulse, bi-lightning</div>
+        </div>
+
+        <div class="mb-4 form-check">
+          {{ form.is_active }}
+          <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+            Active Target (Show on Dashboard)
+          </label>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'streaks:dashboard' %}" class="btn btn-light">Cancel</a>
+          <button type="submit" class="btn btn-danger px-4">
+            <i class="bi bi-check-lg me-1"></i>{% if form.instance.pk %}Update Target{% else %}Save Target{% endif %}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

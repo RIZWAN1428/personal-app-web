@@ -66,6 +66,25 @@
     </div>
   </a>
 
+  <!-- Streak Tracker Tile -->
+  <a href="{% url 'streaks:dashboard' %}" class="tile-card">
+    <div class="card bg-danger text-white shadow-sm h-100">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <i class="bi bi-fire fs-3 text-warning"></i>
+            <span class="badge bg-white text-danger rounded-pill fw-bold">🔥 {{ streak_max_days }} Days</span>
+          </div>
+          <h5 class="card-title fw-bold">Streak Tracker</h5>
+          <p class="card-text small opacity-75">
+            GitHub, DSA, Quran, Naukri & Jobs ({{ streak_done_today }}/{{ streak_total_habits }} Today)
+          </p>
+        </div>
+        <span class="small text-white-50 mt-2">Maintain daily streak &rarr;</span>
+      </div>
+    </div>
+  </a>
+
   <!-- Quran Tile -->
   <!-- <a href="{% url 'quran:home' %}" class="tile-card">
     <div class="card bg-primary text-white shadow-sm h-100">

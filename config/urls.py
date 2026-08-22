@@ -28,6 +28,7 @@ urlpatterns = [
     path("hadith/", include("apps.hadith.urls")),
     path("books/", include("apps.books.urls")),
     path("movies/", include("apps.movies.urls")),
+    path("streaks/", include("apps.streaks.urls")),
 ]
 
 if settings.DEBUG:

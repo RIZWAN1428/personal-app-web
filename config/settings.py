@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "apps.hadith",
     "apps.books",
     "apps.movies",
+    "apps.streaks",
     "apps.core",
 ]
 
