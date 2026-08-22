@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Discover Free Books — Personal App{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Header -->
+  <div class="col-12">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h1 class="h2 fw-bold mb-1"><i class="bi bi-compass-fill text-success me-2"></i>Discover Free Books & Classics</h1>
+        <p class="text-muted mb-0">Browse curated public domain Islamic & Self-Help literature with 1-click free PDF reader or search Open Library.</p>
+      </div>
+      <a href="{% url 'books:list' %}" class="btn btn-outline-primary">&larr; Back to My Library</a>
+    </div>
+  </div>
+
+  <!-- Search Open Library Bar -->
+  <div class="col-12">
+    <div class="card bg-body-tertiary border-0 shadow-sm">
+      <div class="card-body p-3">
+        <form method="get" action="{% url 'books:discover' %}">
+          <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Search any book title or author across millions on Open Library..." value="{{ query }}">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>Search Books</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Results (if any) -->
+  {% if search_results %}
+    <div class="col-12">
+      <h4 class="fw-bold mb-3">Search Results for "{{ query }}"</h4>
+      <div class="row g-3">
+        {% for res in search_results %}
+          <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 bg-body-tertiary">
+              <div class="card-body d-flex flex-column justify-content-between p-3">
+                <div>
+                  {% if res.cover_image_url %}
+                    <img src="{{ res.cover_image_url }}" alt="{{ res.title }}" class="img-fluid rounded mb-2 w-100 object-fit-cover" style="height: 180px;">
+                  {% endif %}
+                  <h6 class="fw-bold mb-1">{{ res.title }}</h6>
+                  <p class="text-muted small mb-2">{{ res.author }}</p>
+                  {% if res.first_publish_year %}
+                    <small class="text-muted d-block mb-2">First published: {{ res.first_publish_year }}</small>
+                  {% endif %}
+                </div>
+                <div class="mt-2 pt-2 border-top">
+                  <a href="{% url 'books:create' %}?title={{ res.title|urlencode }}&author={{ res.author|urlencode }}&cover_image_url={{ res.cover_image_url|urlencode }}&total_pages={{ res.total_pages }}" class="btn btn-sm btn-primary w-100">
+                    <i class="bi bi-plus-lg me-1"></i>Add to My Library
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Curated Free Books with Direct PDF Links -->
+  <div class="col-12">
+    <h4 class="fw-bold mb-3">Curated Free Classics (Ready to Read)</h4>
+    <div class="row g-4">
+      {% for item in curated_books %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm border-0 bg-body-tertiary rounded-4 overflow-hidden d-flex flex-column justify-content-between">
+            <div class="p-3">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge {% if item.category == 'religious' %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %}">
+                  {% if item.category == 'religious' %}🕌 Religious / Islamic{% else %}💡 Personal Growth{% endif %}
+                </span>
+                <span class="text-muted small">{{ item.total_pages }} pages</span>
+              </div>
+
+              <div class="d-flex gap-3 my-2">
+                <img src="{{ item.cover_image_url }}" alt="{{ item.title }}" class="rounded shadow-sm object-fit-cover" style="width: 70px; height: 100px;">
+                <div>
+                  <h5 class="fw-bold mb-1">{{ item.title }}</h5>
+                  <p class="text-muted small mb-0">{{ item.author }}</p>
+                </div>
+              </div>
+
+              <p class="small text-body-secondary mt-2 mb-0">
+                {{ item.description }}
+              </p>
+            </div>
+
+            <div class="p-3 pt-0 border-top mt-2 pt-2">
+              <form method="post" action="{% url 'books:quick_add' %}">
+                {% csrf_token %}
+                <input type="hidden" name="title" value="{{ item.title }}">
+                <input type="hidden" name="author" value="{{ item.author }}">
+                <input type="hidden" name="category" value="{{ item.category }}">
+                <input type="hidden" name="cover_image_url" value="{{ item.cover_image_url }}">
+                <input type="hidden" name="pdf_url" value="{{ item.pdf_url }}">
+                <input type="hidden" name="total_pages" value="{{ item.total_pages }}">
+
+                {% if item.title in user_book_titles %}
+                  <button type="button" class="btn btn-sm btn-outline-success w-100" disabled>
+                    <i class="bi bi-check-circle-fill me-1"></i>In Your Library
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-sm btn-success w-100 rounded-pill">
+                    <i class="bi bi-plus-circle me-1"></i>1-Click Add & Read PDF
+                  </button>
+                {% endif %}
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

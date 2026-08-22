@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Books Library — Personal App{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Header Bar -->
+  <div class="col-12">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <h1 class="h2 fw-bold mb-1"><i class="bi bi-book text-danger me-2"></i>My Books Library</h1>
+        <p class="text-muted mb-0">Track books read, currently reading, and to read. Read PDFs with automatic page resume.</p>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'books:discover' %}" class="btn btn-outline-success">
+          <i class="bi bi-compass me-1"></i>Free Books Catalog
+        </a>
+        <a href="{% url 'books:create' %}" class="btn btn-primary">
+          <i class="bi bi-plus-lg me-1"></i>Add Book
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shelves / Status Pills & Search Bar -->
+  <div class="col-12">
+    <div class="card bg-body-tertiary border-0 shadow-sm">
+      <div class="card-body p-3">
+        <div class="row g-3 align-items-center">
+          <div class="col-lg-8">
+            <div class="d-flex flex-wrap gap-1">
+              <a href="{% url 'books:list' %}" class="btn btn-sm {% if current_status == 'all' and not current_category %}btn-dark{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                All Books ({{ total_books }})
+              </a>
+              <a href="{% url 'books:list' %}?status=reading" class="btn btn-sm {% if current_status == 'reading' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">
+                <i class="bi bi-book-half me-1"></i>Reading ({{ reading_count }})
+              </a>
+              <a href="{% url 'books:list' %}?status=completed" class="btn btn-sm {% if current_status == 'completed' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">
+                <i class="bi bi-check-circle me-1"></i>Read Till Now ({{ completed_count }})
+              </a>
+              <a href="{% url 'books:list' %}?status=want_to_read" class="btn btn-sm {% if current_status == 'want_to_read' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %} rounded-pill">
+                <i class="bi bi-bookmark-plus me-1"></i>Gonna Read ({{ want_to_read_count }})
+              </a>
+              <a href="{% url 'books:list' %}?status=favorites" class="btn btn-sm {% if current_status == 'favorites' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill">
+                <i class="bi bi-star-fill me-1"></i>Favorites ({{ favorites_count }})
+              </a>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <form method="get" action="{% url 'books:list' %}">
+              <div class="input-group input-group-sm">
+                <input type="text" name="q" class="form-control" placeholder="Search title or author..." value="{{ search_query }}">
+                <button class="btn btn-secondary" type="submit"><i class="bi bi-search"></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Category Filters -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-2 border-top text-muted small">
+          <span class="fw-semibold me-1"><i class="bi bi-tag-fill me-1"></i>Category:</span>
+          <a href="{% url 'books:list' %}{% if current_status != 'all' %}?status={{ current_status }}{% endif %}" class="badge text-decoration-none {% if not current_category %}bg-secondary text-white{% else %}bg-secondary-subtle text-secondary{% endif %}">All Types</a>
+          <a href="{% url 'books:list' %}?category=religious{% if current_status != 'all' %}&status={{ current_status }}{% endif %}" class="badge text-decoration-none {% if current_category == 'religious' %}bg-success text-white{% else %}bg-success-subtle text-success{% endif %}">🕌 Religious / Islamic ({{ religious_count }})</a>
+          <a href="{% url 'books:list' %}?category=non_religious{% if current_status != 'all' %}&status={{ current_status }}{% endif %}" class="badge text-decoration-none {% if current_category == 'non_religious' %}bg-primary text-white{% else %}bg-primary-subtle text-primary{% endif %}">📖 Non-Religious / General ({{ non_religious_count }})</a>
+          <a href="{% url 'books:list' %}?category=self_help{% if current_status != 'all' %}&status={{ current_status }}{% endif %}" class="badge text-decoration-none {% if current_category == 'self_help' %}bg-info text-white{% else %}bg-info-subtle text-info{% endif %}">💡 Self-Help</a>
+          <a href="{% url 'books:list' %}?category=fiction{% if current_status != 'all' %}&status={{ current_status }}{% endif %}" class="badge text-decoration-none {% if current_category == 'fiction' %}bg-warning text-dark{% else %}bg-warning-subtle text-warning-emphasis{% endif %}">📚 Fiction</a>
+          <a href="{% url 'books:list' %}?category=history{% if current_status != 'all' %}&status={{ current_status }}{% endif %}" class="badge text-decoration-none {% if current_category == 'history' %}bg-dark text-white{% else %}bg-dark-subtle text-dark{% endif %}">🏛️ History</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Books Grid -->
+  <div class="col-12">
+    {% if books %}
+      <div class="row g-4">
+        {% for book in books %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 bg-body-tertiary rounded-4 overflow-hidden d-flex flex-column justify-content-between">
+              <div>
+                <!-- Card Header with Favorite Toggle -->
+                <div class="p-3 pb-0 d-flex justify-content-between align-items-start">
+                  <div>
+                    <span class="badge {% if book.category == 'religious' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-primary-subtle text-primary border border-primary-subtle{% endif %} me-1">
+                      {{ book.get_category_display }}
+                    </span>
+                    <span class="badge {% if book.status == 'completed' %}bg-success text-white{% elif book.status == 'reading' %}bg-primary text-white{% else %}bg-warning text-dark{% endif %}">
+                      {{ book.get_status_display }}
+                    </span>
+                  </div>
+                  <form method="post" action="{% url 'books:favorite' book.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-link p-0 text-decoration-none" title="Toggle Favorite">
+                      <i class="bi {% if book.is_favorite %}bi-star-fill text-danger fs-5{% else %}bi-star text-muted fs-5{% endif %}"></i>
+                    </button>
+                  </form>
+                </div>
+
+                <!-- Book Body -->
+                <div class="card-body p-3">
+                  <div class="d-flex gap-3">
+                    {% if book.cover_image_url %}
+                      <img src="{{ book.cover_image_url }}" alt="{{ book.title }}" class="rounded-3 shadow-sm object-fit-cover" style="width: 75px; height: 105px;">
+                    {% else %}
+                      <div class="rounded-3 shadow-sm d-flex flex-column align-items-center justify-content-center bg-secondary text-white text-center p-2" style="width: 75px; height: 105px;">
+                        <i class="bi bi-journal-bookmark fs-2"></i>
+                      </div>
+                    {% endif %}
+
+                    <div class="flex-grow-1 overflow-hidden">
+                      <h5 class="fw-bold mb-1 text-truncate">
+                        <a href="{% url 'books:detail' book.pk %}" class="text-decoration-none text-body">{{ book.title }}</a>
+                      </h5>
+                      <p class="text-muted small mb-2 text-truncate">{{ book.author|default:"Unknown Author" }}</p>
+
+                      {% if book.rating %}
+                        <div class="text-warning small mb-2">{{ book.get_rating_display }}</div>
+                      {% endif %}
+
+                      <!-- Reading Progress Bar -->
+                      {% if book.total_pages > 0 %}
+                        <div class="mt-2">
+                          <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Page {{ book.current_page }} / {{ book.total_pages }}</span>
+                            <span class="fw-bold text-primary">{{ book.progress_percentage }}%</span>
+                          </div>
+                          <div class="progress" style="height: 6px;">
+                            <div class="progress-bar {% if book.status == 'completed' %}bg-success{% else %}bg-primary{% endif %}" style="width: {{ book.progress_percentage }}%;"></div>
+                          </div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  {% if book.notes.count > 0 %}
+                    <div class="mt-3 small text-muted">
+                      <i class="bi bi-sticky-fill text-warning me-1"></i>{{ book.notes.count }} personal note{{ book.notes.count|pluralize }}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Card Footer / Actions -->
+              <div class="p-3 pt-0 border-top mt-3 pt-2 d-flex justify-content-between align-items-center">
+                <a href="{% url 'books:detail' book.pk %}" class="btn btn-sm btn-outline-secondary">Details</a>
+                <div class="d-flex gap-1">
+                  {% if book.has_pdf %}
+                    <a href="{% url 'books:reader' book.pk %}" class="btn btn-sm btn-primary rounded-pill px-3">
+                      <i class="bi bi-file-earmark-pdf-fill me-1"></i>Read (p. {{ book.current_page }})
+                    </a>
+                  {% else %}
+                    <a href="{% url 'books:edit' book.pk %}" class="btn btn-sm btn-outline-primary">Edit / Add PDF</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card p-5 text-center bg-body-tertiary border-0 shadow-sm">
+        <i class="bi bi-book-half fs-1 text-muted mb-3"></i>
+        <h4>No books found on this shelf</h4>
+        <p class="text-muted">Start building your personal library by adding books you've read or want to read, or discover free curated books.</p>
+        <div class="d-flex justify-content-center gap-2">
+          <a href="{% url 'books:create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Book</a>
+          <a href="{% url 'books:discover' %}" class="btn btn-outline-success"><i class="bi bi-compass me-1"></i>Browse Free Books</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
