@@ -1,0 +1,26 @@
+/* Small custom touches on top of Bootstrap's defaults. */
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.tile-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+.tile-card .card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  height: 100%;
+}
+
+.tile-card:hover .card {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.pinned-note {
+  border-left: 4px solid var(--bs-warning);
+}

@@ -1,0 +1,17 @@
+# ---- Core web framework ----
+Django==5.0.7
+
+# ---- Database driver (talks to PostgreSQL) ----
+psycopg2-binary==2.9.9
+
+# ---- Parses Render's DATABASE_URL into Django's DATABASES setting ----
+dj-database-url==2.2.0
+
+# ---- Environment variables loader (keeps secrets out of code) ----
+django-environ==0.11.2
+
+# ---- Serves static files (CSS) in production without needing NGINX ----
+whitenoise==6.7.0
+
+# ---- Production web server ----
+gunicorn==22.0.0

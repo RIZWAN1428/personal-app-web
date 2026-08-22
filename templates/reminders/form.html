@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}New{% endif %} reminder — Personal App{% endblock %}
+{% block content %}
+  <h1 class="mb-4">{% if object %}Edit reminder{% else %}New reminder{% endif %}</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.title.id_for_label }}">Title</label>
+      {{ form.title|safe }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.notes.id_for_label }}">Notes (optional)</label>
+      {{ form.notes|safe }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.remind_at.id_for_label }}">Remind at</label>
+      {{ form.remind_at|safe }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.repeat.id_for_label }}">Repeat</label>
+      {{ form.repeat|safe }}
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'reminders:list' %}" class="btn btn-outline-secondary">Cancel</a>
+  </form>
+{% endblock %}

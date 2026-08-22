@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Notes — Personal App{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Notes</h1>
+    <a href="{% url 'notes:create' %}" class="btn btn-primary">+ New note</a>
+  </div>
+
+  {% if notes %}
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+      {% for note in notes %}
+        <div class="col">
+          <div class="card h-100 {% if note.is_pinned %}pinned-note{% endif %}">
+            <div class="card-body">
+              <h5 class="card-title">{{ note.title }}{% if note.is_pinned %} 📌{% endif %}</h5>
+              <p class="card-text">{{ note.body|truncatewords:30|linebreaksbr }}</p>
+              <p class="text-muted small">Updated {{ note.updated_at|date:"M j, Y g:i A" }}</p>
+              <a href="{% url 'notes:update' note.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <a href="{% url 'notes:delete' note.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No notes yet. <a href="{% url 'notes:create' %}">Create your first one</a>.</p>
+  {% endif %}
+{% endblock %}

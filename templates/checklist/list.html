@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Checklist — Personal App{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Checklist</h1>
+    <a href="{% url 'checklist:create' %}" class="btn btn-primary">+ New item</a>
+  </div>
+
+  {% if items %}
+    <ul class="list-group">
+      {% for item in items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div class="form-check">
+            <form method="post" action="{% url 'checklist:toggle' item.pk %}" class="d-inline">
+              {% csrf_token %}
+              <input class="form-check-input" type="checkbox" onchange="this.form.submit()" {% if item.is_done %}checked{% endif %}>
+            </form>
+            <label class="form-check-label {% if item.is_done %}text-decoration-line-through text-muted{% endif %}">
+              {{ item.text }}
+              {% if item.due_date %}<span class="text-muted small">(due {{ item.due_date }})</span>{% endif %}
+            </label>
+          </div>
+          <a href="{% url 'checklist:delete' item.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No items yet. <a href="{% url 'checklist:create' %}">Add your first one</a>.</p>
+  {% endif %}
+{% endblock %}

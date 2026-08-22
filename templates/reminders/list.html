@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Reminders — Personal App{% endblock %}
+{% block content %}
+  {% if just_due %}
+    <div class="alert alert-warning">
+      <strong>Just became due:</strong>
+      {% for r in just_due %}{{ r.title }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Reminders</h1>
+    <a href="{% url 'reminders:create' %}" class="btn btn-primary">+ New reminder</a>
+  </div>
+
+  {% if reminders %}
+    <ul class="list-group">
+      {% for r in reminders %}
+        <li class="list-group-item d-flex justify-content-between align-items-center {% if r.is_sent %}text-muted{% endif %}">
+          <div>
+            <strong>{{ r.title }}</strong>
+            {% if r.repeat != "none" %}<span class="badge bg-secondary">{{ r.get_repeat_display }}</span>{% endif %}
+            {% if r.is_sent %}<span class="badge bg-success">done</span>{% endif %}
+            <div class="small">{{ r.remind_at|date:"M j, Y g:i A" }}</div>
+            {% if r.notes %}<div class="small text-muted">{{ r.notes }}</div>{% endif %}
+          </div>
+          <div>
+            <a href="{% url 'reminders:update' r.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+            <a href="{% url 'reminders:delete' r.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted">No reminders yet. <a href="{% url 'reminders:create' %}">Set your first one</a>.</p>
+  {% endif %}
+{% endblock %}

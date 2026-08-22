@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Delete reminder — Personal App{% endblock %}
+{% block content %}
+  <h1 class="mb-4">Delete reminder?</h1>
+  <p>Are you sure you want to delete "<strong>{{ object.title }}</strong>"?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a href="{% url 'reminders:list' %}" class="btn btn-outline-secondary">Cancel</a>
+  </form>
+{% endblock %}

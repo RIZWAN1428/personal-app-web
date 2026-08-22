@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Edit{% else %}New{% endif %} note — Personal App{% endblock %}
+{% block content %}
+  <h1 class="mb-4">{% if object %}Edit note{% else %}New note{% endif %}</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.title.id_for_label }}">Title</label>
+      {{ form.title|safe }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="{{ form.body.id_for_label }}">Body</label>
+      {{ form.body|safe }}
+    </div>
+    <div class="mb-3 form-check">
+      {{ form.is_pinned|safe }}
+      <label class="form-check-label" for="{{ form.is_pinned.id_for_label }}">Pin this note</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'notes:list' %}" class="btn btn-outline-secondary">Cancel</a>
+  </form>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Home — Personal App{% endblock %}
+{% block content %}
+
+  {% if just_due %}
+    <div class="alert alert-warning">
+      <strong>Reminder{{ just_due|length|pluralize }} due:</strong>
+      {% for r in just_due %}{{ r.title }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+  {% endif %}
+
+  <h1 class="mb-4">Welcome{% if request.user.display_name %}, {{ request.user.display_name }}{% endif %}</h1>
+
+  <div class="tile-grid">
+    <a href="{% url 'notes:list' %}" class="tile-card">
+      <div class="card text-bg-primary">
+        <div class="card-body">
+          <h5 class="card-title">Notes</h5>
+          <p class="card-text">{{ notes_count }} note{{ notes_count|pluralize }}</p>
+        </div>
+      </div>
+    </a>
+    <a href="{% url 'checklist:list' %}" class="tile-card">
+      <div class="card text-bg-success">
+        <div class="card-body">
+          <h5 class="card-title">Checklist</h5>
+          <p class="card-text">{{ checklist_open_count }} open item{{ checklist_open_count|pluralize }}</p>
+        </div>
+      </div>
+    </a>
+    <a href="{% url 'reminders:list' %}" class="tile-card">
+      <div class="card text-bg-warning">
+        <div class="card-body">
+          <h5 class="card-title">Reminders</h5>
+          <p class="card-text">{{ reminders_count }} upcoming</p>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- <p class="text-muted mt-4">
+    Add a new feature (e.g. Books, Movies, Bucket List) by adding a new tile here —
+    see SETUP_MANUAL.md for the exact pattern.
+  </p> -->
+{% endblock %}
