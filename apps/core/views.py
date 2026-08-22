@@ -35,19 +35,20 @@ class HomeView(LoginRequiredMixin, TemplateView):
         context["just_due"] = get_and_process_due_reminders(user)
 
         # Salah timings & habit tracker
-        pref = SalahPreference.objects.filter(user=user).first()
-        city = pref.city if pref else "Jaunpur"
-        state = pref.state if pref else "Uttar Pradesh"
-        country = pref.country if pref else "India"
-        method = pref.method if pref else 1
-        school = pref.school if pref else 1
-
-        timings_data = get_prayer_timings(city=city, country=country, state=state, method=method, school=school)
+        from apps.salah.views import get_user_preference
+        pref = get_user_preference(user)
+        timings_data = get_prayer_timings(
+            city=pref.city,
+            country=pref.country,
+            state=pref.state,
+            method=pref.method,
+            school=pref.school,
+        )
         today_log = SalahDailyLog.objects.filter(user=user, date=date.today()).first()
 
         context["salah_info"] = {
-            "city": city,
-            "country": country,
+            "city": pref.city,
+            "country": pref.country,
             "next_prayer": timings_data.get("next_prayer", {}),
             "hijri_date": timings_data.get("hijri_date", ""),
             "completed_count": today_log.completed_count if today_log else 0,

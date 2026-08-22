@@ -71,9 +71,9 @@
               <span class="badge bg-secondary-subtle text-secondary fw-semibold">FAJR</span>
               <span class="quran-arabic fs-4 text-muted">الفجر</span>
             </div>
-            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Fajr }}</div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings_12h.Fajr|default:timings_data.timings.Fajr }}</div>
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-              <span class="text-muted small">Sunrise: {{ timings_data.timings.Sunrise }}</span>
+              <span class="text-muted small">Sunrise: {{ timings_data.timings_12h.Sunrise|default:timings_data.timings.Sunrise }}</span>
               <form method="post" action="{% url 'salah:toggle' 'fajr' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm {% if daily_log.fajr %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
@@ -93,7 +93,7 @@
               <span class="badge bg-warning-subtle text-warning-emphasis fw-semibold">SUNRISE</span>
               <span class="quran-arabic fs-4 text-muted">الشروق</span>
             </div>
-            <div class="display-6 fw-bold my-2 text-warning-emphasis">{{ timings_data.timings.Sunrise }}</div>
+            <div class="display-6 fw-bold my-2 text-warning-emphasis">{{ timings_data.timings_12h.Sunrise|default:timings_data.timings.Sunrise }}</div>
             <div class="mt-3 pt-2 border-top">
               <span class="text-muted small"><i class="bi bi-sun me-1"></i>Ishraq & Duha window starts</span>
             </div>
@@ -109,7 +109,7 @@
               <span class="badge bg-secondary-subtle text-secondary fw-semibold">DHUHR</span>
               <span class="quran-arabic fs-4 text-muted">الظهر</span>
             </div>
-            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Dhuhr }}</div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings_12h.Dhuhr|default:timings_data.timings.Dhuhr }}</div>
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
               <span class="text-muted small">Midday prayer</span>
               <form method="post" action="{% url 'salah:toggle' 'dhuhr' %}">
@@ -131,7 +131,7 @@
               <span class="badge bg-secondary-subtle text-secondary fw-semibold">ASR</span>
               <span class="quran-arabic fs-4 text-muted">العصر</span>
             </div>
-            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Asr }}</div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings_12h.Asr|default:timings_data.timings.Asr }}</div>
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
               <span class="text-muted small">{% if pref.school == 1 %}Hanafi{% else %}Standard{% endif %}</span>
               <form method="post" action="{% url 'salah:toggle' 'asr' %}">
@@ -153,7 +153,7 @@
               <span class="badge bg-secondary-subtle text-secondary fw-semibold">MAGHRIB</span>
               <span class="quran-arabic fs-4 text-muted">المغرب</span>
             </div>
-            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Maghrib }}</div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings_12h.Maghrib|default:timings_data.timings.Maghrib }}</div>
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
               <span class="text-muted small">Sunset / Iftar</span>
               <form method="post" action="{% url 'salah:toggle' 'maghrib' %}">
@@ -175,7 +175,7 @@
               <span class="badge bg-secondary-subtle text-secondary fw-semibold">ISHA</span>
               <span class="quran-arabic fs-4 text-muted">العشاء</span>
             </div>
-            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Isha }}</div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings_12h.Isha|default:timings_data.timings.Isha }}</div>
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
               <span class="text-muted small">Midnight: {{ timings_data.timings.Midnight }}</span>
               <form method="post" action="{% url 'salah:toggle' 'isha' %}">
