@@ -234,7 +234,7 @@
 <script>
   // Dynamic Live Countdown Timer to Next Prayer
   (function() {
-    const nextPrayerTimeStr = "{{ timings_data.next_prayer.time }}";
+    const nextPrayerTimeStr = "{{ timings_data.next_prayer.raw_time|default:'04:15' }}";
     const nextPrayerName = "{{ timings_data.next_prayer.name }}";
 
     function updateCountdown() {

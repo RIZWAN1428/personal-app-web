@@ -152,11 +152,18 @@ def get_monthly_calendar(city="Jaunpur", country="India", state="Uttar Pradesh",
     return {"success": False, "days": [], "year": year, "month": month}
 
 
-def calculate_next_prayer(timings):
+def calculate_next_prayer(timings, tz_name="Asia/Kolkata"):
     """
-    Calculates which prayer is next and how much time is remaining.
+    Calculates which prayer is next and how much time is remaining based on local location timezone.
     """
-    now = datetime.now()
+    try:
+        from zoneinfo import ZoneInfo
+        now = datetime.now(ZoneInfo(tz_name))
+    except Exception:
+        from datetime import timezone as dt_timezone, timedelta
+        ist = dt_timezone(timedelta(hours=5, minutes=30))
+        now = datetime.now(ist)
+
     current_time_minutes = now.hour * 60 + now.minute
 
     # Ordered prayers to evaluate
@@ -202,6 +209,7 @@ def calculate_next_prayer(timings):
     return {
         "name": next_prayer or "Fajr",
         "time": format_to_12hr(target_time_str),
+        "raw_time": target_time_str,
         "minutes_remaining": minutes_left or 0,
         "formatted_remaining": f"{hours}h {mins}m" if hours > 0 else f"{mins}m",
     }
