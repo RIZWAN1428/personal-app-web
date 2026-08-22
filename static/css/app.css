@@ -1,9 +1,25 @@
-/* Small custom touches on top of Bootstrap's defaults. */
+/* ==========================================================================
+   Personal App — Core & Islamic Suite Stylesheet
+   ========================================================================== */
 
+:root {
+  --app-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --app-font-arabic: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+  --app-salah-green: #10b981;
+  --app-salah-gold: #f59e0b;
+}
+
+body {
+  font-family: var(--app-font-sans);
+  min-height: 100vh;
+  letter-spacing: -0.01em;
+}
+
+/* Dashboard Grid */
 .tile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
 }
 
 .tile-card {
@@ -12,15 +28,150 @@
 }
 
 .tile-card .card {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   height: 100%;
 }
 
+[data-bs-theme="dark"] .tile-card .card {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 .tile-card:hover .card {
-  transform: translateY(-3px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 .pinned-note {
-  border-left: 4px solid var(--bs-warning);
+  border-left: 4px solid var(--bs-warning) !important;
+}
+
+/* ==========================================================================
+   Arabic Typography & Quran Styles
+   ========================================================================== */
+.quran-arabic {
+  font-family: var(--app-font-arabic);
+  font-size: 1.85rem;
+  line-height: 2.3;
+  direction: rtl;
+  text-align: right;
+  word-spacing: 2px;
+}
+
+.quran-arabic-lg {
+  font-family: var(--app-font-arabic);
+  font-size: 2.25rem;
+  line-height: 2.5;
+  direction: rtl;
+  text-align: right;
+}
+
+.ayah-card {
+  border-radius: 12px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ayah-card.active-ayah {
+  border-color: var(--bs-primary) !important;
+  background-color: rgba(13, 110, 253, 0.04);
+}
+
+.ayah-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(13, 110, 253, 0.1);
+  color: var(--bs-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.urdu-translation {
+  font-family: 'Amiri', 'Noto Nastaliq Urdu', serif;
+  font-size: 1.15rem;
+  line-height: 1.9;
+  direction: rtl;
+  text-align: right;
+  color: #555;
+}
+
+[data-bs-theme="dark"] .urdu-translation {
+  color: #bbb;
+}
+
+/* ==========================================================================
+   Salah (Prayer Times) Styles
+   ========================================================================== */
+.prayer-card {
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="dark"] .prayer-card {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.prayer-card.current-prayer {
+  border: 2px solid var(--app-salah-green);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+}
+
+.prayer-card.next-prayer {
+  border: 2px solid var(--app-salah-gold);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.02) 100%);
+  transform: scale(1.02);
+}
+
+.pulse-badge {
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+.countdown-timer-box {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #fff;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.countdown-digits {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   Hadith Styles
+   ========================================================================== */
+.hadith-quote {
+  font-family: var(--app-font-arabic);
+  font-size: 1.5rem;
+  line-height: 2.2;
+  direction: rtl;
+  text-align: right;
+}
+
+.hadith-card {
+  border-radius: 12px;
+  transition: transform 0.2s ease;
+}
+
+.hadith-card:hover {
+  transform: translateY(-2px);
 }

@@ -3,43 +3,162 @@
 {% block content %}
 
   {% if just_due %}
-    <div class="alert alert-warning">
-      <strong>Reminder{{ just_due|length|pluralize }} due:</strong>
-      {% for r in just_due %}{{ r.title }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    <div class="alert alert-warning shadow-sm d-flex align-items-center gap-2">
+      <i class="bi bi-bell-fill fs-5"></i>
+      <div>
+        <strong>Reminder{{ just_due|length|pluralize }} due:</strong>
+        {% for r in just_due %}{{ r.title }}{% if not forloop.last %}, {% endif %}{% endfor %}
+      </div>
     </div>
   {% endif %}
 
-  <h1 class="mb-4">Welcome{% if request.user.display_name %}, {{ request.user.display_name }}{% endif %}</h1>
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+      <h1 class="h2 mb-1 fw-bold">Welcome{% if request.user.display_name %}, {{ request.user.display_name }}{% endif %}</h1>
+      <p class="text-muted mb-0">
+        {% if salah_info.hijri_date %}
+          <span class="badge bg-secondary-subtle text-secondary me-2"><i class="bi bi-moon-stars me-1"></i>{{ salah_info.hijri_date }}</span>
+        {% endif %}
+        <span class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ salah_info.city }}</span>
+      </p>
+    </div>
+    {% if salah_info.next_prayer.name %}
+      <div class="p-2 px-3 rounded-pill bg-success-subtle text-success border border-success-subtle d-flex align-items-center gap-2 shadow-sm">
+        <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+        <span class="fw-semibold">Next: {{ salah_info.next_prayer.name }} ({{ salah_info.next_prayer.time }})</span>
+        <span class="badge bg-success text-white rounded-pill">{{ salah_info.next_prayer.formatted_remaining }} left</span>
+      </div>
+    {% endif %}
+  </div>
 
+  <!-- Featured Daily Hadith Banner -->
+  {% if daily_hadith %}
+    <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge text-bg-warning"><i class="bi bi-stars me-1"></i>Daily Hadith — {{ daily_hadith.collection_name }} #{{ daily_hadith.hadith_number }}</span>
+          <a href="{% url 'hadith:home' %}" class="small text-decoration-none">Explore Hadith <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <p class="hadith-quote my-2 text-primary-emphasis">{{ daily_hadith.arabic_text }}</p>
+        <p class="card-text text-body-secondary fst-italic mb-0">"{{ daily_hadith.translation_text }}"</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Tile Grid -->
   <div class="tile-grid">
+    <!-- Salah Timings Tile -->
+    <a href="{% url 'salah:dashboard' %}" class="tile-card">
+      <div class="card bg-success text-white shadow-sm h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <i class="bi bi-clock-history fs-3"></i>
+              <span class="badge bg-white text-success rounded-pill fw-bold">{{ salah_info.completed_count }}/5 Done</span>
+            </div>
+            <h5 class="card-title fw-bold">Salah Timings</h5>
+            <p class="card-text small opacity-75">
+              Next: <strong>{{ salah_info.next_prayer.name }}</strong> at {{ salah_info.next_prayer.time }}
+            </p>
+          </div>
+          <span class="small text-white-50 mt-2">Tap for times & habit tracker &rarr;</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Quran Tile -->
+    <a href="{% url 'quran:home' %}" class="tile-card">
+      <div class="card bg-primary text-white shadow-sm h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <i class="bi bi-book fs-3"></i>
+              {% if quran_progress %}
+                <span class="badge bg-white text-primary rounded-pill fw-bold">{{ quran_progress.khatam_percentage }}% Khatam</span>
+              {% endif %}
+            </div>
+            <h5 class="card-title fw-bold">Holy Quran</h5>
+            <p class="card-text small opacity-75">
+              {% if quran_progress and quran_progress.surah_name %}
+                Resume: <strong>{{ quran_progress.surah_name }}</strong> ({{ quran_progress.last_surah }}:{{ quran_progress.last_ayah }})
+              {% else %}
+                Read, listen, and track recitation
+              {% endif %}
+            </p>
+          </div>
+          <span class="small text-white-50 mt-2">Tap to read & listen &rarr;</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Hadith Tile -->
+    <a href="{% url 'hadith:home' %}" class="tile-card">
+      <div class="card bg-dark text-white shadow-sm h-100 border-secondary">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <i class="bi bi-chat-square-quote fs-3 text-warning"></i>
+              <span class="badge bg-secondary rounded-pill">{{ hadith_bookmarks_count }} Bookmarks</span>
+            </div>
+            <h5 class="card-title fw-bold">Hadith Books</h5>
+            <p class="card-text small opacity-75">
+              Sahih al-Bukhari, Muslim, 40 Nawawi & more.
+            </p>
+          </div>
+          <span class="small text-white-50 mt-2">Explore 8 collections &rarr;</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Notes Tile -->
     <a href="{% url 'notes:list' %}" class="tile-card">
-      <div class="card text-bg-primary">
-        <div class="card-body">
-          <h5 class="card-title">Notes</h5>
-          <p class="card-text">{{ notes_count }} note{{ notes_count|pluralize }}</p>
+      <div class="card bg-info text-dark shadow-sm h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <i class="bi bi-journal-text fs-3"></i>
+              <span class="badge bg-dark text-white rounded-pill">{{ notes_count }}</span>
+            </div>
+            <h5 class="card-title fw-bold">Notes</h5>
+            <p class="card-text small text-dark-emphasis">{{ notes_count }} note{{ notes_count|pluralize }} saved</p>
+          </div>
+          <span class="small text-muted mt-2">Open notes &rarr;</span>
         </div>
       </div>
     </a>
+
+    <!-- Checklist Tile -->
     <a href="{% url 'checklist:list' %}" class="tile-card">
-      <div class="card text-bg-success">
-        <div class="card-body">
-          <h5 class="card-title">Checklist</h5>
-          <p class="card-text">{{ checklist_open_count }} open item{{ checklist_open_count|pluralize }}</p>
+      <div class="card bg-secondary text-white shadow-sm h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <i class="bi bi-check2-square fs-3"></i>
+              <span class="badge bg-white text-dark rounded-pill">{{ checklist_open_count }} Open</span>
+            </div>
+            <h5 class="card-title fw-bold">Checklist</h5>
+            <p class="card-text small opacity-75">{{ checklist_open_count }} pending task{{ checklist_open_count|pluralize }}</p>
+          </div>
+          <span class="small text-white-50 mt-2">View checklist &rarr;</span>
         </div>
       </div>
     </a>
+
+    <!-- Reminders Tile -->
     <a href="{% url 'reminders:list' %}" class="tile-card">
-      <div class="card text-bg-warning">
-        <div class="card-body">
-          <h5 class="card-title">Reminders</h5>
-          <p class="card-text">{{ reminders_count }} upcoming</p>
+      <div class="card bg-warning text-dark shadow-sm h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <i class="bi bi-bell fs-3"></i>
+              <span class="badge bg-dark text-white rounded-pill">{{ reminders_count }} Due</span>
+            </div>
+            <h5 class="card-title fw-bold">Reminders</h5>
+            <p class="card-text small text-dark-emphasis">{{ reminders_count }} upcoming reminder{{ reminders_count|pluralize }}</p>
+          </div>
+          <span class="small text-muted mt-2">Manage reminders &rarr;</span>
         </div>
       </div>
     </a>
   </div>
-
-  <!-- <p class="text-muted mt-4">
-    Add a new feature (e.g. Books, Movies, Bucket List) by adding a new tile here —
-    see SETUP_MANUAL.md for the exact pattern.
-  </p> -->
 {% endblock %}

@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Salah Timings — {{ selected_city }} — Personal App{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Top Location & Header Bar -->
+  <div class="col-12">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 bg-body-tertiary p-3 rounded-4 shadow-sm">
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h1 class="h3 mb-0 fw-bold"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ selected_city }}{% if selected_state %}, {{ selected_state }}{% endif %}</h1>
+          <span class="badge bg-primary-subtle text-primary">{{ selected_country }}</span>
+        </div>
+        <div class="text-muted small mt-1">
+          <i class="bi bi-moon-stars me-1 text-warning"></i><strong>{{ timings_data.hijri_date }}</strong>
+          <span class="mx-2">•</span>
+          <i class="bi bi-calendar3 me-1"></i>{{ timings_data.gregorian_date }}
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <form method="get" action="{% url 'salah:dashboard' %}" class="d-flex gap-1">
+          <div class="input-group input-group-sm">
+            <input type="text" name="city" class="form-control" placeholder="Change city (e.g. Jaunpur)" value="{{ selected_city }}" required>
+            <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+          </div>
+        </form>
+        <a href="{% url 'salah:calendar' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-calendar-week me-1"></i>Monthly Schedule</a>
+        <a href="{% url 'salah:settings' %}" class="btn btn-sm btn-outline-secondary" title="Calculation Settings"><i class="bi bi-gear"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero: Live Next Prayer Countdown Card -->
+  <div class="col-12">
+    <div class="countdown-timer-box shadow">
+      <div class="row align-items-center">
+        <div class="col-md-7">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold pulse-badge">NEXT PRAYER</span>
+            <span class="text-white-50 small"><i class="bi bi-clock me-1"></i>Target: {{ timings_data.next_prayer.time }}</span>
+          </div>
+          <h2 class="display-5 fw-bold mb-1 text-white">{{ timings_data.next_prayer.name }}</h2>
+          <p class="text-white-50 mb-0">Automatic real-time calculation based on your local coordinates.</p>
+        </div>
+        <div class="col-md-5 text-md-end mt-3 mt-md-0">
+          <div class="small text-uppercase text-white-50 fw-semibold mb-1">Time Remaining</div>
+          <div id="countdown-display" class="display-6 countdown-digits text-warning">
+            {{ timings_data.next_prayer.formatted_remaining }}
+          </div>
+          <div class="small text-white-50 mt-1" id="countdown-subtext">live ticking</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Prayer Cards (with Habit Tracker Checkboxes) -->
+  <div class="col-12">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-bold mb-0">Today's Prayer Schedule</h4>
+      <div class="badge bg-success-subtle text-success p-2 px-3 rounded-pill fw-semibold">
+        <i class="bi bi-check-circle-fill me-1"></i>{{ daily_log.completed_count }} / 5 Prayers Prayed
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Fajr -->
+      <div class="col-md-4 col-sm-6">
+        <div class="card prayer-card shadow-sm {% if timings_data.next_prayer.name == 'Fajr' %}next-prayer{% endif %}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary-subtle text-secondary fw-semibold">FAJR</span>
+              <span class="quran-arabic fs-4 text-muted">الفجر</span>
+            </div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Fajr }}</div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+              <span class="text-muted small">Sunrise: {{ timings_data.timings.Sunrise }}</span>
+              <form method="post" action="{% url 'salah:toggle' 'fajr' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if daily_log.fajr %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                  <i class="bi {% if daily_log.fajr %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>{% if daily_log.fajr %}Prayed{% else %}Mark Prayed{% endif %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sunrise (Informational) -->
+      <div class="col-md-4 col-sm-6">
+        <div class="card prayer-card shadow-sm bg-body-tertiary">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-warning-subtle text-warning-emphasis fw-semibold">SUNRISE</span>
+              <span class="quran-arabic fs-4 text-muted">الشروق</span>
+            </div>
+            <div class="display-6 fw-bold my-2 text-warning-emphasis">{{ timings_data.timings.Sunrise }}</div>
+            <div class="mt-3 pt-2 border-top">
+              <span class="text-muted small"><i class="bi bi-sun me-1"></i>Ishraq & Duha window starts</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dhuhr -->
+      <div class="col-md-4 col-sm-6">
+        <div class="card prayer-card shadow-sm {% if timings_data.next_prayer.name == 'Dhuhr' %}next-prayer{% endif %}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary-subtle text-secondary fw-semibold">DHUHR</span>
+              <span class="quran-arabic fs-4 text-muted">الظهر</span>
+            </div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Dhuhr }}</div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+              <span class="text-muted small">Midday prayer</span>
+              <form method="post" action="{% url 'salah:toggle' 'dhuhr' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if daily_log.dhuhr %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                  <i class="bi {% if daily_log.dhuhr %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>{% if daily_log.dhuhr %}Prayed{% else %}Mark Prayed{% endif %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asr -->
+      <div class="col-md-4 col-sm-6">
+        <div class="card prayer-card shadow-sm {% if timings_data.next_prayer.name == 'Asr' %}next-prayer{% endif %}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary-subtle text-secondary fw-semibold">ASR</span>
+              <span class="quran-arabic fs-4 text-muted">العصر</span>
+            </div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Asr }}</div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+              <span class="text-muted small">{% if pref.school == 1 %}Hanafi{% else %}Standard{% endif %}</span>
+              <form method="post" action="{% url 'salah:toggle' 'asr' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if daily_log.asr %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                  <i class="bi {% if daily_log.asr %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>{% if daily_log.asr %}Prayed{% else %}Mark Prayed{% endif %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Maghrib -->
+      <div class="col-md-4 col-sm-6">
+        <div class="card prayer-card shadow-sm {% if timings_data.next_prayer.name == 'Maghrib' %}next-prayer{% endif %}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary-subtle text-secondary fw-semibold">MAGHRIB</span>
+              <span class="quran-arabic fs-4 text-muted">المغرب</span>
+            </div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Maghrib }}</div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+              <span class="text-muted small">Sunset / Iftar</span>
+              <form method="post" action="{% url 'salah:toggle' 'maghrib' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if daily_log.maghrib %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                  <i class="bi {% if daily_log.maghrib %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>{% if daily_log.maghrib %}Prayed{% else %}Mark Prayed{% endif %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Isha -->
+      <div class="col-md-4 col-sm-6">
+        <div class="card prayer-card shadow-sm {% if timings_data.next_prayer.name == 'Isha' %}next-prayer{% endif %}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary-subtle text-secondary fw-semibold">ISHA</span>
+              <span class="quran-arabic fs-4 text-muted">العشاء</span>
+            </div>
+            <div class="display-6 fw-bold my-2">{{ timings_data.timings.Isha }}</div>
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+              <span class="text-muted small">Midnight: {{ timings_data.timings.Midnight }}</span>
+              <form method="post" action="{% url 'salah:toggle' 'isha' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if daily_log.isha %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                  <i class="bi {% if daily_log.isha %}bi-check-circle-fill{% else %}bi-circle{% endif %} me-1"></i>{% if daily_log.isha %}Prayed{% else %}Mark Prayed{% endif %}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Times Banner -->
+  <div class="col-12">
+    <div class="card bg-body-tertiary border-0 shadow-sm">
+      <div class="card-body p-3">
+        <div class="row text-center text-muted small g-2">
+          <div class="col-6 col-md-3">
+            <i class="bi bi-moon me-1"></i>Imsak (Sehri end): <strong class="text-body">{{ timings_data.timings.Imsak }}</strong>
+          </div>
+          <div class="col-6 col-md-3">
+            <i class="bi bi-sunset me-1"></i>Sunset: <strong class="text-body">{{ timings_data.timings.Sunset }}</strong>
+          </div>
+          <div class="col-6 col-md-3">
+            <i class="bi bi-clock-history me-1"></i>Islamic Midnight: <strong class="text-body">{{ timings_data.timings.Midnight }}</strong>
+          </div>
+          <div class="col-6 col-md-3">
+            <i class="bi bi-star me-1"></i>Tahajjud / Last 3rd: <strong class="text-body">{{ timings_data.timings.Lastthird|default:"01:50" }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Location Switcher Buttons (Common Cities) -->
+  <div class="col-12">
+    <div class="d-flex align-items-center gap-2 flex-wrap text-muted small">
+      <span><i class="bi bi-compass me-1"></i>Quick Switch:</span>
+      <a href="{% url 'salah:dashboard' %}?city=Jaunpur&state=UP&country=India" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'Jaunpur' %}active{% endif %}">Jaunpur, UP</a>
+      <a href="{% url 'salah:dashboard' %}?city=Lucknow&state=UP&country=India" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'Lucknow' %}active{% endif %}">Lucknow</a>
+      <a href="{% url 'salah:dashboard' %}?city=Varanasi&state=UP&country=India" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'Varanasi' %}active{% endif %}">Varanasi</a>
+      <a href="{% url 'salah:dashboard' %}?city=Delhi&country=India" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'Delhi' %}active{% endif %}">Delhi</a>
+      <a href="{% url 'salah:dashboard' %}?city=Mumbai&country=India" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'Mumbai' %}active{% endif %}">Mumbai</a>
+      <a href="{% url 'salah:dashboard' %}?city=Makkah&country=Saudi+Arabia" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'Makkah' %}active{% endif %}">Makkah</a>
+      <a href="{% url 'salah:dashboard' %}?city=Madinah&country=Saudi+Arabia" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'Madinah' %}active{% endif %}">Madinah</a>
+      <a href="{% url 'salah:dashboard' %}?city=London&country=UK" class="btn btn-sm btn-outline-secondary rounded-pill {% if selected_city == 'London' %}active{% endif %}">London</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Dynamic Live Countdown Timer to Next Prayer
+  (function() {
+    const nextPrayerTimeStr = "{{ timings_data.next_prayer.time }}";
+    const nextPrayerName = "{{ timings_data.next_prayer.name }}";
+
+    function updateCountdown() {
+      const now = new Date();
+      const parts = nextPrayerTimeStr.split(":");
+      if (parts.length < 2) return;
+
+      const target = new Date();
+      target.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0, 0);
+
+      // If target is in the past for today, target tomorrow's time
+      if (target <= now) {
+        target.setDate(target.getDate() + 1);
+      }
+
+      const diffMs = target - now;
+      if (diffMs <= 0) {
+        document.getElementById("countdown-display").textContent = "Time for " + nextPrayerName + "!";
+        return;
+      }
+
+      const diffSec = Math.floor(diffMs / 1000);
+      const hours = Math.floor(diffSec / 3600);
+      const minutes = Math.floor((diffSec % 3600) / 60);
+      const seconds = diffSec % 60;
+
+      const pad = (n) => n.toString().padStart(2, '0');
+      const formatted = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+
+      const displayElem = document.getElementById("countdown-display");
+      if (displayElem) {
+        displayElem.textContent = formatted;
+      }
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  })();
+</script>
+{% endblock %}

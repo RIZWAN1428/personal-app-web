@@ -35,6 +35,8 @@ DEBUG = env.bool("DJANGO_DEBUG", default=False)
 # RENDER_EXTERNAL_HOSTNAME is injected by Render itself at runtime, so you
 # don't have to hard-code your app's URL here.
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+if "testserver" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("testserver")
 render_hostname = env("RENDER_EXTERNAL_HOSTNAME", default="")
 if render_hostname:
     ALLOWED_HOSTS.append(render_hostname)
@@ -80,6 +82,9 @@ INSTALLED_APPS = [
     "apps.notes",
     "apps.checklist",
     "apps.reminders",
+    "apps.salah",
+    "apps.quran",
+    "apps.hadith",
     "apps.core",
 ]
 

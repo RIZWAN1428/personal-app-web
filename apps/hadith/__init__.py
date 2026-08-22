@@ -1,0 +1,1 @@
+"""Hadith app module."""

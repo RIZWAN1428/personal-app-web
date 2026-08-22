@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}{{ collection.name }} — Hadith — Personal App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <!-- Top Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+      <div>
+        <a href="{% url 'hadith:home' %}" class="btn btn-outline-secondary btn-sm mb-2">&larr; All Collections</a>
+        <h1 class="h3 fw-bold mb-1">{{ collection.name }} <span class="quran-arabic fs-4 text-muted ms-2">{{ collection.arabic_name }}</span></h1>
+        <p class="text-muted small mb-0">{{ collection.author }} • {{ collection.total_hadiths }} Hadiths</p>
+      </div>
+
+      <!-- Jump / Search by Hadith Number -->
+      <form method="get" action="{% url 'hadith:collection' collection.id %}" class="d-flex gap-1">
+        <div class="input-group input-group-sm">
+          <input type="number" name="hadith_number" class="form-control" placeholder="Hadith # (1-{{ collection.total_hadiths }})" min="1" max="{{ collection.total_hadiths }}" required>
+          <button class="btn btn-primary" type="submit">Jump to #</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Pagination Bar -->
+    {% if page_data.total_pages > 1 %}
+      <div class="d-flex justify-content-between align-items-center mb-4 bg-body-tertiary p-2 px-3 rounded-3">
+        <div>
+          {% if page_data.has_prev %}
+            <a href="?page={{ page_data.prev_page }}" class="btn btn-sm btn-outline-secondary">&larr; Previous Page</a>
+          {% endif %}
+        </div>
+        <div class="small text-muted">
+          Showing Hadiths <strong>{{ page_data.start_num }} – {{ page_data.end_num }}</strong> of {{ page_data.total }} (Page {{ page_data.current_page }} of {{ page_data.total_pages }})
+        </div>
+        <div>
+          {% if page_data.has_next %}
+            <a href="?page={{ page_data.next_page }}" class="btn btn-sm btn-outline-secondary">Next Page &rarr;</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Hadiths List -->
+    <div class="hadith-list">
+      {% for h in hadiths %}
+        <div class="card shadow-sm border-0 bg-body-tertiary mb-4 rounded-4" id="hadith-{{ h.hadith_number }}">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">#{{ h.hadith_number }}</span>
+                {% if h.grade %}
+                  <span class="badge bg-success-subtle text-success">{{ h.grade }}</span>
+                {% endif %}
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <!-- Toggle Read Button -->
+                <form method="post" action="{% url 'hadith:toggle_read' collection.id h.hadith_number %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm {% if h.hadith_number in read_numbers %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                    <i class="bi {% if h.hadith_number in read_numbers %}bi-check2-circle{% else %}bi-circle{% endif %} me-1"></i>
+                    {% if h.hadith_number in read_numbers %}Read{% else %}Mark as Read{% endif %}
+                  </button>
+                </form>
+
+                <!-- Bookmark Button -->
+                <button type="button" class="btn btn-sm {% if h.hadith_number in bookmarked_numbers %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}" data-bs-toggle="modal" data-bs-target="#hadithBookmarkModal-{{ h.hadith_number }}">
+                  <i class="bi {% if h.hadith_number in bookmarked_numbers %}bi-bookmark-star-fill{% else %}bi-bookmark{% endif %}"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Arabic Text -->
+            {% if h.arabic_text %}
+              <div class="hadith-quote my-3 text-primary-emphasis">
+                {{ h.arabic_text }}
+              </div>
+            {% endif %}
+
+            <!-- English Translation -->
+            <p class="card-text text-body lead fs-6 mb-0">
+              {{ h.translation_text }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Bookmark Modal -->
+        <div class="modal fade" id="hadithBookmarkModal-{{ h.hadith_number }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="post" action="{% url 'hadith:bookmark_add' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title"><i class="bi bi-bookmark-star-fill text-warning me-2"></i>Bookmark {{ collection.name }} #{{ h.hadith_number }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <input type="hidden" name="collection_id" value="{{ collection.id }}">
+                  <input type="hidden" name="collection_name" value="{{ collection.name }}">
+                  <input type="hidden" name="hadith_number" value="{{ h.hadith_number }}">
+                  <input type="hidden" name="arabic_text" value="{{ h.arabic_text }}">
+                  <input type="hidden" name="translation_text" value="{{ h.translation_text }}">
+                  <input type="hidden" name="grade" value="{{ h.grade }}">
+
+                  <p class="small text-muted mb-3">{{ h.translation_text|truncatewords:30 }}</p>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Personal Study Notes / Reflections</label>
+                    <textarea name="note" class="form-control" rows="3" placeholder="Add key takeaways, notes, or reflections for this Hadith..."></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary"><i class="bi bi-bookmark-check me-1"></i>Save Bookmark</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="card p-5 text-center bg-body-tertiary border-0">
+          <p class="text-muted">No Hadiths found. Check connection or try another page number.</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Bottom Pagination -->
+    {% if page_data.total_pages > 1 %}
+      <div class="d-flex justify-content-between align-items-center my-4">
+        <div>
+          {% if page_data.has_prev %}
+            <a href="?page={{ page_data.prev_page }}" class="btn btn-outline-primary">&larr; Previous Page</a>
+          {% endif %}
+        </div>
+        <a href="{% url 'hadith:home' %}" class="btn btn-outline-secondary">All Collections</a>
+        <div>
+          {% if page_data.has_next %}
+            <a href="?page={{ page_data.next_page }}" class="btn btn-primary">Next Page &rarr;</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Monthly Prayer Timetable — {{ pref.city }} — Personal App{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div>
+    <h1 class="h3 fw-bold mb-1"><i class="bi bi-calendar3 text-primary me-2"></i>Monthly Prayer Schedule</h1>
+    <p class="text-muted mb-0">{{ pref.city }}{% if pref.state %}, {{ pref.state }}{% endif %}, {{ pref.country }}</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chevron-left"></i> Prev Month</a>
+    <span class="badge bg-primary fs-6 px-3 py-2">{{ month_name }}</span>
+    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-secondary btn-sm">Next Month <i class="bi bi-chevron-right"></i></a>
+    <a href="{% url 'salah:dashboard' %}" class="btn btn-sm btn-outline-primary ms-2"><i class="bi bi-arrow-left me-1"></i>Back to Today</a>
+  </div>
+</div>
+
+<div class="card shadow-sm border-0">
+  <div class="table-responsive">
+    <table class="table table-hover table-striped align-middle mb-0 text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Date</th>
+          <th>Hijri</th>
+          <th>Fajr</th>
+          <th>Sunrise</th>
+          <th>Dhuhr</th>
+          <th>Asr</th>
+          <th>Maghrib</th>
+          <th>Isha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for day in calendar.days %}
+          <tr>
+            <td class="fw-semibold text-start">
+              {{ day.day }} {{ day.weekday|slice:":3" }}
+            </td>
+            <td class="text-muted small">{{ day.hijri }}</td>
+            <td class="fw-medium">{{ day.timings.Fajr }}</td>
+            <td class="text-muted">{{ day.timings.Sunrise }}</td>
+            <td class="fw-medium">{{ day.timings.Dhuhr }}</td>
+            <td class="fw-medium">{{ day.timings.Asr }}</td>
+            <td class="fw-bold text-success">{{ day.timings.Maghrib }}</td>
+            <td class="fw-medium">{{ day.timings.Isha }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-muted py-4">No calendar data found. Check your internet connection.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

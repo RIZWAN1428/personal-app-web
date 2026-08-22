@@ -25,4 +25,7 @@ urlpatterns = [
     path("notes/", include("apps.notes.urls")),
     path("checklist/", include("apps.checklist.urls")),
     path("reminders/", include("apps.reminders.urls")),
+    path("salah/", include("apps.salah.urls")),
+    path("quran/", include("apps.quran.urls")),
+    path("hadith/", include("apps.hadith.urls")),
 ]

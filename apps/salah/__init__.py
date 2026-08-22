@@ -1,0 +1,1 @@
+"""Salah timings app module."""

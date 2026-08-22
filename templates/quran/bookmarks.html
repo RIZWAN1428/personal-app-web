@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Quran Bookmarks — Personal App{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1"><i class="bi bi-bookmark-star-fill text-warning me-2"></i>Saved Quran Bookmarks</h1>
+    <p class="text-muted mb-0">Your bookmarked Ayahs and personal study reflections</p>
+  </div>
+  <a href="{% url 'quran:home' %}" class="btn btn-outline-primary">&larr; Back to Quran</a>
+</div>
+
+{% if bookmarks %}
+  <div class="row g-3">
+    {% for bm in bookmarks %}
+      <div class="col-12">
+        <div class="card shadow-sm border-0 bg-body-tertiary">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <a href="{% url 'quran:surah' bm.surah_number %}?ayah={{ bm.ayah_number }}" class="fw-bold fs-5 text-decoration-none text-primary">
+                Surah {{ bm.surah_name }} ({{ bm.surah_number }}:{{ bm.ayah_number }})
+              </a>
+              <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">{{ bm.created_at|date:"M d, Y" }}</span>
+                <form method="post" action="{% url 'quran:bookmark_delete' bm.pk %}" class="d-inline" onsubmit="return confirm('Remove this bookmark?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </div>
+
+            <div class="quran-arabic fs-4 my-2 text-primary-emphasis">
+              {{ bm.arabic_text }}
+            </div>
+            <p class="text-body-secondary mb-2">
+              {{ bm.translation_text }}
+            </p>
+
+            {% if bm.note %}
+              <div class="p-3 mt-3 bg-warning-subtle text-warning-emphasis rounded-3 small">
+                <i class="bi bi-sticky-fill me-1"></i><strong>Your Reflection:</strong> {{ bm.note }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card p-5 text-center bg-body-tertiary border-0 shadow-sm">
+    <i class="bi bi-bookmark-plus fs-1 text-muted mb-2"></i>
+    <h5>No saved bookmarks yet</h5>
+    <p class="text-muted">While reading any Surah, click the bookmark icon on an Ayah to save it here with personal reflection notes.</p>
+    <div>
+      <a href="{% url 'quran:home' %}" class="btn btn-primary">Start Reading Quran</a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

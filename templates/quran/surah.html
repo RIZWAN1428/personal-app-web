@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}Surah {{ surah.englishName }} ({{ surah.name }}) — Personal App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <!-- Top Navigation -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <a href="{% url 'quran:home' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>All Surahs</a>
+      <div class="d-flex gap-2">
+        {% if prev_surah %}
+          <a href="{% url 'quran:surah' prev_surah %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chevron-left"></i> Prev Surah</a>
+        {% endif %}
+        {% if next_surah %}
+          <a href="{% url 'quran:surah' next_surah %}" class="btn btn-outline-secondary btn-sm">Next Surah <i class="bi bi-chevron-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Surah Header Card -->
+    <div class="card shadow-sm border-0 bg-body-tertiary text-center p-4 mb-4 rounded-4">
+      <h1 class="quran-arabic-lg text-primary mb-2">{{ surah.name }}</h1>
+      <h2 class="h4 fw-bold mb-1">{{ surah.englishName }} <span class="text-muted fs-6">({{ surah.englishNameTranslation }})</span></h2>
+      <div class="text-muted small mb-3">
+        Surah #{{ surah.number }} • {{ surah.numberOfAyahs }} Verses • {{ surah.revelationType }}
+      </div>
+
+      <!-- Quick Control Bar -->
+      <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 pt-2 border-top">
+        <form method="post" action="{% url 'quran:surah_complete' surah.number %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm {% if is_completed %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill">
+            <i class="bi {% if is_completed %}bi-check-circle-fill{% else %}bi-check-circle{% endif %} me-1"></i>
+            {% if is_completed %}Surah Completed!{% else %}Mark Surah as Read{% endif %}
+          </button>
+        </form>
+
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-secondary" id="toggleUrduBtn" onclick="toggleUrdu()"><i class="bi bi-translate me-1"></i>Urdu</button>
+          <button type="button" class="btn btn-outline-secondary" id="toggleEnglishBtn" onclick="toggleEnglish()"><i class="bi bi-translate me-1"></i>English</button>
+        </div>
+
+        <div class="btn-group btn-group-sm" role="group">
+          <button type="button" class="btn btn-outline-secondary" onclick="changeFontSize(-2)">A-</button>
+          <button type="button" class="btn btn-outline-secondary" onclick="changeFontSize(2)">A+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bismillah (for all except Surah 9) -->
+    {% if surah.number != 9 and surah.number != 1 %}
+      <div class="text-center my-4 py-2">
+        <div class="quran-arabic fs-2 text-primary-emphasis">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+        <div class="text-muted small fst-italic">In the name of Allah, the Entirely Merciful, the Especially Merciful</div>
+      </div>
+    {% endif %}
+
+    <!-- Ayahs Container -->
+    <div class="ayahs-container" id="ayahsContainer">
+      {% for ayah in ayahs %}
+        <div class="card ayah-card shadow-sm border mb-3 {% if target_ayah == ayah.number_in_surah %}active-ayah{% endif %}" id="ayah-{{ ayah.number_in_surah }}">
+          <div class="card-body p-3 p-md-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <span class="ayah-badge">{{ ayah.number_in_surah }}</span>
+                <span class="text-muted small">Juz {{ ayah.juz }} • Page {{ ayah.page }}</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <!-- Audio Player -->
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-circle" style="width: 32px; height: 32px; padding: 0;" onclick="playAyahAudio('{{ ayah.audio_url }}', this)" title="Listen Recitation">
+                  <i class="bi bi-volume-up-fill"></i>
+                </button>
+
+                <!-- Update Reading Position -->
+                <form method="post" action="{% url 'quran:progress_update' %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="surah_number" value="{{ surah.number }}">
+                  <input type="hidden" name="ayah_number" value="{{ ayah.number_in_surah }}">
+                  <input type="hidden" name="surah_name" value="{{ surah.englishName }}">
+                  <input type="hidden" name="ayahs_read" value="1">
+                  <button type="submit" class="btn btn-sm btn-outline-secondary" title="Save this as my current reading position">
+                    <i class="bi bi-geo-alt me-1"></i>Mark Read Here
+                  </button>
+                </form>
+
+                <!-- Bookmark Button -->
+                <button type="button" class="btn btn-sm {% if ayah.number_in_surah in bookmarked_ayahs %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}" data-bs-toggle="modal" data-bs-target="#bookmarkModal-{{ ayah.number_in_surah }}" title="Bookmark this verse">
+                  <i class="bi {% if ayah.number_in_surah in bookmarked_ayahs %}bi-bookmark-star-fill{% else %}bi-bookmark{% endif %}"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Arabic Ayah Text -->
+            <div class="quran-arabic my-3 arabic-verse" id="verse-text-{{ ayah.number_in_surah }}">
+              {{ ayah.arabic }}
+            </div>
+
+            <!-- English Translation -->
+            <div class="text-body-secondary english-verse my-2">
+              <span class="badge bg-light text-dark border me-1">EN</span> {{ ayah.english }}
+            </div>
+
+            <!-- Urdu Translation -->
+            {% if ayah.urdu %}
+              <div class="urdu-translation urdu-verse my-2 pt-2 border-top">
+                <span class="badge bg-light text-dark border me-1" style="direction: ltr;">UR</span> {{ ayah.urdu }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Bookmark Modal for this Ayah -->
+        <div class="modal fade" id="bookmarkModal-{{ ayah.number_in_surah }}" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="post" action="{% url 'quran:bookmark_add' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                  <h5 class="modal-title"><i class="bi bi-bookmark-star-fill text-warning me-2"></i>Bookmark Ayah {{ surah.englishName }} {{ surah.number }}:{{ ayah.number_in_surah }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <input type="hidden" name="surah_number" value="{{ surah.number }}">
+                  <input type="hidden" name="ayah_number" value="{{ ayah.number_in_surah }}">
+                  <input type="hidden" name="surah_name" value="{{ surah.englishName }}">
+                  <input type="hidden" name="arabic_text" value="{{ ayah.arabic }}">
+                  <input type="hidden" name="translation_text" value="{{ ayah.english }}">
+
+                  <div class="quran-arabic fs-5 mb-2 text-primary">{{ ayah.arabic }}</div>
+                  <p class="small text-muted mb-3">{{ ayah.english }}</p>
+
+                  <div class="mb-3">
+                    <label class="form-label fw-semibold">Personal Reflection / Study Note</label>
+                    <textarea name="note" class="form-control" rows="3" placeholder="Write any reflections, key lessons, or reasons for bookmarking..."></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary"><i class="bi bi-bookmark-check me-1"></i>Save Bookmark</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="d-flex justify-content-between align-items-center my-4">
+      {% if prev_surah %}
+        <a href="{% url 'quran:surah' prev_surah %}" class="btn btn-outline-primary"><i class="bi bi-arrow-left me-1"></i>Previous Surah</a>
+      {% else %}
+        <div></div>
+      {% endif %}
+      <a href="{% url 'quran:home' %}" class="btn btn-secondary">Surah Index</a>
+      {% if next_surah %}
+        <a href="{% url 'quran:surah' next_surah %}" class="btn btn-primary">Next Surah <i class="bi bi-arrow-right ms-1"></i></a>
+      {% else %}
+        <div></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  let currentAudio = null;
+  let currentBtn = null;
+
+  function playAyahAudio(url, btn) {
+    if (currentAudio) {
+      currentAudio.pause();
+      if (currentBtn) {
+        currentBtn.innerHTML = '<i class="bi bi-volume-up-fill"></i>';
+      }
+      if (currentAudio.src === url) {
+        currentAudio = null;
+        return;
+      }
+    }
+
+    currentAudio = new Audio(url);
+    currentBtn = btn;
+    btn.innerHTML = '<i class="bi bi-stop-fill text-danger"></i>';
+
+    currentAudio.play();
+    currentAudio.onended = function() {
+      btn.innerHTML = '<i class="bi bi-volume-up-fill"></i>';
+      currentAudio = null;
+    };
+  }
+
+  function toggleUrdu() {
+    const urduVerses = document.querySelectorAll('.urdu-verse');
+    urduVerses.forEach(v => {
+      v.style.display = v.style.display === 'none' ? '' : 'none';
+    });
+  }
+
+  function toggleEnglish() {
+    const enVerses = document.querySelectorAll('.english-verse');
+    enVerses.forEach(v => {
+      v.style.display = v.style.display === 'none' ? '' : 'none';
+    });
+  }
+
+  let currentFontSize = 1.85;
+  function changeFontSize(deltaRem) {
+    currentFontSize = Math.max(1.2, Math.min(3.5, currentFontSize + (deltaRem * 0.15)));
+    const arabicTexts = document.querySelectorAll('.arabic-verse');
+    arabicTexts.forEach(t => {
+      t.style.fontSize = currentFontSize + 'rem';
+    });
+  }
+
+  // Scroll to target ayah if requested in URL
+  window.addEventListener('DOMContentLoaded', () => {
+    const targetAyah = "{{ target_ayah }}";
+    if (targetAyah && targetAyah !== "1") {
+      const el = document.getElementById("ayah-" + targetAyah);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  });
+</script>
+{% endblock %}

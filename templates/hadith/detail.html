@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ collection.name }} #{{ hadith_number }} — Personal App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <a href="{% url 'hadith:collection' collection_id %}" class="btn btn-outline-secondary btn-sm">&larr; Back to {{ collection.name }}</a>
+      <div class="d-flex gap-2">
+        {% if prev_number %}
+          <a href="{% url 'hadith:detail' collection_id prev_number %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chevron-left"></i> Prev</a>
+        {% endif %}
+        {% if next_number %}
+          <a href="{% url 'hadith:detail' collection_id next_number %}" class="btn btn-outline-secondary btn-sm">Next <i class="bi bi-chevron-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 bg-body-tertiary rounded-4 p-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">{{ collection.name }} #{{ hadith_number }}</span>
+          {% if hadith.grade %}
+            <span class="badge bg-success-subtle text-success ms-1">{{ hadith.grade }}</span>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-sm {% if bookmark %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}" data-bs-toggle="modal" data-bs-target="#hadithDetailBookmarkModal">
+          <i class="bi {% if bookmark %}bi-bookmark-star-fill{% else %}bi-bookmark{% endif %} me-1"></i>{% if bookmark %}Bookmarked{% else %}Bookmark{% endif %}
+        </button>
+      </div>
+
+      {% if hadith.arabic_text %}
+        <div class="hadith-quote my-3 text-primary-emphasis">
+          {{ hadith.arabic_text }}
+        </div>
+      {% endif %}
+
+      <p class="fs-5 text-body lead my-3">
+        "{{ hadith.translation_text }}"
+      </p>
+
+      {% if bookmark and bookmark.note %}
+        <div class="p-3 mt-3 bg-warning-subtle text-warning-emphasis rounded-3 small">
+          <i class="bi bi-sticky-fill me-1"></i><strong>Your Notes:</strong> {{ bookmark.note }}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Bookmark Modal -->
+    <div class="modal fade" id="hadithDetailBookmarkModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form method="post" action="{% url 'hadith:bookmark_add' %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="bi bi-bookmark-star-fill text-warning me-2"></i>Bookmark {{ collection.name }} #{{ hadith_number }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" name="collection_id" value="{{ collection.id }}">
+              <input type="hidden" name="collection_name" value="{{ collection.name }}">
+              <input type="hidden" name="hadith_number" value="{{ hadith_number }}">
+              <input type="hidden" name="arabic_text" value="{{ hadith.arabic_text }}">
+              <input type="hidden" name="translation_text" value="{{ hadith.translation_text }}">
+              <input type="hidden" name="grade" value="{{ hadith.grade }}">
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Personal Study Notes / Reflections</label>
+                <textarea name="note" class="form-control" rows="3" placeholder="Add personal reflections, lessons, or commentary...">{{ bookmark.note|default:"" }}</textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Bookmark</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
