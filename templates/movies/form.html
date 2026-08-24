@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}{% if form.instance.pk %}Edit {{ form.instance.title }}{% else %}Add Movie / Series{% endif %} — Personal App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10 col-xl-9">
+
+    <!-- Top Action Bar -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'movies:list' %}" class="btn btn-outline-secondary btn-sm rounded-circle p-2 d-inline-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="Back to Movies">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+          <h2 class="h3 fw-bold mb-0">
+            {% if form.instance.pk %}
+              <i class="bi bi-pencil-square text-primary me-2"></i>Edit Movie / Series
+            {% else %}
+              <i class="bi bi-film text-primary me-2"></i>Add Movie / TV Show
+            {% endif %}
+          </h2>
+          <p class="text-muted small mb-0">Track movies, web series, personal ratings & reviews</p>
+        </div>
+      </div>
+      <a href="{% url 'movies:discover' %}" class="btn btn-outline-primary btn-sm rounded-pill">
+        <i class="bi bi-compass me-1"></i>Discover Popular Movies
+      </a>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card shadow-sm border-0 bg-body-tertiary rounded-4 overflow-hidden mb-5">
+      <div class="card-body p-4 p-md-5">
+
+        {% if form.errors %}
+          <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Please correct errors below:</strong>
+            <ul class="mb-0 mt-2 small">
+              {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                  <li>{{ field|title }}: {{ error }}</li>
+                {% endfor %}
+              {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+
+          <!-- Section 1: Core Details -->
+          <div class="card border-0 bg-body rounded-4 p-4 mb-4">
+            <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
+              <i class="bi bi-camera-reels-fill"></i> Basic Information
+            </h5>
+
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.title.label }} <span class="text-danger">*</span>
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+              </div>
+
+              <div class="col-md-6">
+                <label for="{{ form.media_type.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.media_type.label }}
+                </label>
+                {{ form.media_type }}
+              </div>
+
+              <div class="col-md-6">
+                <label for="{{ form.industry.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.industry.label }}
+                </label>
+                {{ form.industry }}
+              </div>
+
+              <div class="col-md-6">
+                <label for="{{ form.genre.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.genre.label }}
+                </label>
+                {{ form.genre }}
+              </div>
+
+              <div class="col-md-6">
+                <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.status.label }}
+                </label>
+                {{ form.status }}
+              </div>
+
+              <div class="col-12">
+                <div class="form-check form-switch mt-2">
+                  {{ form.is_favorite }}
+                  <label class="form-check-label fw-semibold ms-2" for="{{ form.is_favorite.id_for_label }}">
+                    {{ form.is_favorite.label }}
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Metadata & Visuals -->
+          <div class="card border-0 bg-body rounded-4 p-4 mb-4">
+            <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
+              <i class="bi bi-info-circle-fill"></i> Film Details & Poster
+            </h5>
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label for="{{ form.release_year.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.release_year.label }}
+                </label>
+                {{ form.release_year }}
+              </div>
+
+              <div class="col-md-4">
+                <label for="{{ form.director.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.director.label }}
+                </label>
+                {{ form.director }}
+              </div>
+
+              <div class="col-md-4">
+                <label for="{{ form.imdb_rating.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.imdb_rating.label }}
+                </label>
+                {{ form.imdb_rating }}
+              </div>
+
+              <div class="col-12">
+                <label for="{{ form.cast.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.cast.label }}
+                </label>
+                {{ form.cast }}
+              </div>
+
+              <div class="col-md-6">
+                <label for="{{ form.where_to_watch.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.where_to_watch.label }}
+                </label>
+                {{ form.where_to_watch }}
+              </div>
+
+              <div class="col-md-6">
+                <label for="{{ form.watched_date.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.watched_date.label }}
+                </label>
+                {{ form.watched_date }}
+              </div>
+
+              <div class="col-12">
+                <label for="{{ form.poster_url.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.poster_url.label }}
+                </label>
+                {{ form.poster_url }}
+                <div class="form-text">Direct image URL for poster thumbnail.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Rating & Review -->
+          <div class="card border-0 bg-body rounded-4 p-4 mb-4">
+            <h5 class="fw-bold mb-3 text-primary d-flex align-items-center gap-2">
+              <i class="bi bi-star-fill text-warning"></i> Personal Rating & Review
+            </h5>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="{{ form.my_rating.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.my_rating.label }}
+                </label>
+                {{ form.my_rating }}
+              </div>
+
+              <div class="col-12">
+                <label for="{{ form.review.id_for_label }}" class="form-label fw-semibold">
+                  {{ form.review.label }}
+                </label>
+                {{ form.review }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex align-items-center justify-content-end gap-3 pt-2">
+            <a href="{% url 'movies:list' %}" class="btn btn-light px-4 rounded-pill">Cancel</a>
+            <button type="submit" class="btn btn-primary px-5 rounded-pill fw-semibold shadow-sm">
+              <i class="bi bi-check-lg me-1"></i>{% if form.instance.pk %}Save Changes{% else %}Add to Collection{% endif %}
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

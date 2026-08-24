@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}{{ movie.title }} — Personal App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+
+    <!-- Top Action Bar -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <a href="{% url 'movies:list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Movies
+      </a>
+
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'movies:favorite' movie.pk %}" class="btn {% if movie.is_favorite %}btn-warning text-dark{% else %}btn-outline-secondary{% endif %} btn-sm rounded-pill">
+          <i class="bi {% if movie.is_favorite %}bi-star-fill{% else %}bi-star{% endif %} me-1"></i>
+          {% if movie.is_favorite %}Favourite{% else %}Add Favourite{% endif %}
+        </a>
+        <a href="{% url 'movies:edit' movie.pk %}" class="btn btn-outline-primary btn-sm rounded-pill">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <a href="{% url 'movies:delete' movie.pk %}" class="btn btn-outline-danger btn-sm rounded-pill">
+          <i class="bi bi-trash me-1"></i>Delete
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Header Card -->
+    <div class="card shadow-sm border-0 bg-body-tertiary rounded-4 overflow-hidden mb-4 p-4">
+      <div class="row g-4 align-items-center">
+
+        <!-- Poster Image -->
+        <div class="col-md-4 col-lg-3 text-center">
+          {% if movie.poster_url %}
+            <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="img-fluid rounded-4 shadow" style="max-height: 320px; object-fit: cover;">
+          {% else %}
+            <div class="rounded-4 bg-primary bg-opacity-10 text-primary d-flex flex-column align-items-center justify-content-center shadow-sm p-4 mx-auto" style="width: 190px; height: 280px;">
+              <i class="bi bi-film display-1 mb-2 opacity-75"></i>
+              <span class="fw-bold text-center small text-truncate w-100">{{ movie.title }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Details -->
+        <div class="col-md-8 col-lg-9">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="badge bg-primary bg-opacity-10 text-primary border px-3 py-2 rounded-pill small">
+              {{ movie.get_media_type_display }}
+            </span>
+            <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-2 rounded-pill small">
+              {{ movie.get_industry_display }}
+            </span>
+            <span class="badge bg-info bg-opacity-10 text-info border px-3 py-2 rounded-pill small">
+              {{ movie.get_genre_display }}
+            </span>
+
+            {% if movie.status == 'watched' %}
+              <span class="badge bg-success px-3 py-2 rounded-pill small"><i class="bi bi-check-circle me-1"></i>Watched</span>
+            {% elif movie.status == 'watching' %}
+              <span class="badge bg-warning text-dark px-3 py-2 rounded-pill small"><i class="bi bi-play-circle me-1"></i>Currently Watching</span>
+            {% elif movie.status == 'plan_to_watch' %}
+              <span class="badge bg-info text-dark px-3 py-2 rounded-pill small"><i class="bi bi-bookmark me-1"></i>Plan to Watch</span>
+            {% else %}
+              <span class="badge bg-secondary px-3 py-2 rounded-pill small">{{ movie.get_status_display }}</span>
+            {% endif %}
+
+            {% if movie.is_favorite %}
+              <span class="badge bg-warning text-dark px-3 py-2 rounded-pill small"><i class="bi bi-star-fill me-1"></i>Favourite</span>
+            {% endif %}
+          </div>
+
+          <h1 class="fw-bold mb-1 h2">
+            {{ movie.title }} {% if movie.release_year %}<span class="text-muted fw-normal">({{ movie.release_year }})</span>{% endif %}
+          </h1>
+
+          {% if movie.director %}
+            <p class="text-muted mb-2"><i class="bi bi-camera-reels me-1"></i>Directed by <strong>{{ movie.director }}</strong></p>
+          {% endif %}
+
+          {% if movie.cast %}
+            <p class="text-muted mb-3 small"><i class="bi bi-people me-1"></i>Starring: {{ movie.cast }}</p>
+          {% endif %}
+
+          <!-- Ratings Grid -->
+          <div class="row g-3 mb-4">
+            <div class="col-auto">
+              <div class="bg-body border rounded-4 p-3 d-flex align-items-center gap-3">
+                <i class="bi bi-award-fill text-warning fs-3"></i>
+                <div>
+                  <div class="small text-muted fw-semibold">IMDb Rating</div>
+                  <div class="fw-bold h5 mb-0">{% if movie.imdb_rating %}{{ movie.imdb_rating }} <span class="small text-muted">/10</span>{% else %}N/A{% endif %}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-auto">
+              <div class="bg-body border rounded-4 p-3 d-flex align-items-center gap-3">
+                <i class="bi bi-star-fill text-warning fs-3"></i>
+                <div>
+                  <div class="small text-muted fw-semibold">My Rating</div>
+                  <div class="fw-bold h5 mb-0">{% if movie.my_rating %}{{ movie.get_my_rating_display }}{% else %}Unrated{% endif %}</div>
+                </div>
+              </div>
+            </div>
+
+            {% if movie.where_to_watch %}
+              <div class="col-auto">
+                <div class="bg-body border rounded-4 p-3 d-flex align-items-center gap-3">
+                  <i class="bi bi-tv text-primary fs-3"></i>
+                  <div>
+                    <div class="small text-muted fw-semibold">Platform</div>
+                    <div class="fw-bold h5 mb-0 text-truncate" style="max-width: 160px;">{{ movie.where_to_watch }}</div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Quick Status Dropdown -->
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary rounded-pill px-4 py-2 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              Change Watch Status
+            </button>
+            <ul class="dropdown-menu shadow rounded-4">
+              <li><a class="dropdown-item" href="{% url 'movies:change_status' movie.pk 'watched' %}"><i class="bi bi-check-circle text-success me-2"></i>Watched</a></li>
+              <li><a class="dropdown-item" href="{% url 'movies:change_status' movie.pk 'watching' %}"><i class="bi bi-play-circle text-warning me-2"></i>Currently Watching</a></li>
+              <li><a class="dropdown-item" href="{% url 'movies:change_status' movie.pk 'plan_to_watch' %}"><i class="bi bi-bookmark text-info me-2"></i>Plan to Watch</a></li>
+              <li><a class="dropdown-item" href="{% url 'movies:change_status' movie.pk 'on_hold' %}"><i class="bi bi-pause-circle text-secondary me-2"></i>On Hold</a></li>
+              <li><a class="dropdown-item" href="{% url 'movies:change_status' movie.pk 'dropped' %}"><i class="bi bi-x-circle text-danger me-2"></i>Dropped</a></li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Section -->
+    {% if movie.review %}
+      <div class="card shadow-sm border-0 bg-body-tertiary rounded-4 p-4 mb-4">
+        <h4 class="fw-bold mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-chat-quote-fill text-primary"></i> My Personal Review & Thoughts
+        </h4>
+        <p class="text-body bg-body p-4 rounded-4 border mb-0" style="white-space: pre-line; line-height: 1.6;">
+          {{ movie.review }}
+        </p>
+      </div>
+    {% endif %}
+
+    <!-- Watch Metadata Footer Card -->
+    <div class="card shadow-sm border-0 bg-body-tertiary rounded-4 p-4">
+      <div class="row g-3 text-muted small">
+        <div class="col-md-4">
+          <i class="bi bi-calendar-event me-1"></i>Date Watched: <strong>{% if movie.watched_date %}{{ movie.watched_date|date:"F d, Y" }}{% else %}Not specified{% endif %}</strong>
+        </div>
+        <div class="col-md-4">
+          <i class="bi bi-clock-history me-1"></i>Added on: <strong>{{ movie.created_at|date:"F d, Y" }}</strong>
+        </div>
+        <div class="col-md-4">
+          <i class="bi bi-arrow-repeat me-1"></i>Last updated: <strong>{{ movie.updated_at|date:"F d, Y" }}</strong>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

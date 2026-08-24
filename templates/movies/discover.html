@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Discover Popular Movies & Web Series — Personal App{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+  <div>
+    <h1 class="h2 fw-bold mb-1">
+      <i class="bi bi-compass text-primary me-2"></i>Discover Movies & Web Series
+    </h1>
+    <p class="text-muted mb-0">Explore curated blockbuster movies, top-rated series & search catalog</p>
+  </div>
+  <a href="{% url 'movies:list' %}" class="btn btn-outline-secondary rounded-pill">
+    <i class="bi bi-film me-1"></i>My Movies Collection
+  </a>
+</div>
+
+<!-- Search Bar -->
+<div class="card border-0 bg-body-tertiary shadow-sm rounded-4 p-4 mb-5">
+  <form method="get" action="{% url 'movies:discover' %}" class="row g-3 align-items-center">
+    <div class="col-md-9">
+      <div class="input-group input-group-lg">
+        <span class="input-group-text bg-body border-end-0 rounded-start-pill"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control bg-body border-start-0 rounded-end-pill fs-6" placeholder="Search any movie or web series title..." value="{{ query }}">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 fw-semibold fs-6">
+        <i class="bi bi-search me-1"></i>Search Movies
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Search Results Section -->
+{% if query %}
+  <h3 class="fw-bold mb-3 d-flex align-items-center gap-2">
+    <i class="bi bi-list-check text-primary"></i> Search Results for "{{ query }}"
+  </h3>
+
+  {% if search_results %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+      {% for item in search_results %}
+        <div class="col">
+          <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-body-tertiary">
+            {% if item.poster_url %}
+              <img src="{{ item.poster_url }}" class="card-img-top" alt="{{ item.title }}" style="height: 300px; object-fit: cover;">
+            {% else %}
+              <div class="card-img-top bg-dark bg-opacity-75 text-light d-flex flex-column align-items-center justify-content-center p-4" style="height: 300px;">
+                <i class="bi bi-film display-1 text-primary opacity-50 mb-2"></i>
+                <h5 class="fw-bold text-center mb-0 text-white">{{ item.title }}</h5>
+              </div>
+            {% endif %}
+
+            <div class="card-body p-3 d-flex flex-column">
+              <h5 class="card-title fw-bold mb-1 h6 text-truncate">{{ item.title }}</h5>
+              <p class="card-text text-muted small mb-2">
+                {% if item.release_year %}{{ item.release_year }} • {% endif %}{{ item.media_type|title }}
+              </p>
+
+              {% if item.cast %}
+                <p class="small text-muted text-truncate mb-3">{{ item.cast }}</p>
+              {% endif %}
+
+              <div class="mt-auto">
+                {% if item.title in user_titles %}
+                  <button class="btn btn-sm btn-outline-success rounded-pill w-100 disabled" disabled>
+                    <i class="bi bi-check-circle me-1"></i>In Collection
+                  </button>
+                {% else %}
+                  <form method="post" action="{% url 'movies:quick_add' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="title" value="{{ item.title }}">
+                    <input type="hidden" name="media_type" value="{{ item.media_type|default:'movie' }}">
+                    <input type="hidden" name="industry" value="{{ item.industry|default:'bollywood' }}">
+                    <input type="hidden" name="genre" value="{{ item.genre|default:'rom_com' }}">
+                    <input type="hidden" name="release_year" value="{{ item.release_year|default:'' }}">
+                    <input type="hidden" name="director" value="{{ item.director|default:'' }}">
+                    <input type="hidden" name="cast" value="{{ item.cast|default:'' }}">
+                    <input type="hidden" name="imdb_rating" value="{{ item.imdb_rating|default:'' }}">
+                    <input type="hidden" name="where_to_watch" value="{{ item.where_to_watch|default:'' }}">
+                    <input type="hidden" name="poster_url" value="{{ item.poster_url|default:'' }}">
+                    <input type="hidden" name="status" value="plan_to_watch">
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100 fw-semibold">
+                      <i class="bi bi-plus-lg me-1"></i>Add to Watchlist
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info rounded-4 p-4 mb-5">
+      No online search results found for "{{ query }}". Try searching for a specific movie or series name.
+    </div>
+  {% endif %}
+{% endif %}
+
+<!-- Curated Popular Collection -->
+<div class="mb-5">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h3 class="fw-bold mb-1 d-flex align-items-center gap-2">
+        <i class="bi bi-fire text-danger"></i> Handpicked Blockbusters & Series
+      </h3>
+      <p class="text-muted small mb-0">Popular Indian & International movies ready for 1-click addition</p>
+    </div>
+  </div>
+
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for item in curated_movies %}
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-body-tertiary">
+          {% if item.poster_url %}
+            <img src="{{ item.poster_url }}" class="card-img-top" alt="{{ item.title }}" style="height: 320px; object-fit: cover;">
+          {% else %}
+            <div class="card-img-top bg-dark bg-opacity-75 text-light d-flex flex-column align-items-center justify-content-center p-4" style="height: 320px;">
+              <i class="bi bi-film display-1 text-primary opacity-50 mb-2"></i>
+              <h5 class="fw-bold text-center mb-0 text-white">{{ item.title }}</h5>
+            </div>
+          {% endif %}
+
+          <div class="card-body p-3 d-flex flex-column">
+            <div class="d-flex align-items-center gap-1 mb-2">
+              <span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill small">
+                {{ item.media_type|title }}
+              </span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill small">
+                {{ item.industry|title }}
+              </span>
+            </div>
+
+            <h5 class="card-title fw-bold mb-1 h6 text-truncate">{{ item.title }}</h5>
+            <p class="card-text text-muted small mb-2">
+              {% if item.release_year %}{{ item.release_year }} • {% endif %}{{ item.genre|title }}
+            </p>
+
+            {% if item.imdb_rating %}
+              <div class="small fw-semibold text-warning mb-3">
+                <i class="bi bi-award-fill me-1"></i>IMDb {{ item.imdb_rating }}/10
+              </div>
+            {% endif %}
+
+            <div class="mt-auto">
+              {% if item.title in user_titles %}
+                <button class="btn btn-sm btn-outline-success rounded-pill w-100 disabled" disabled>
+                  <i class="bi bi-check-circle me-1"></i>In Collection
+                </button>
+              {% else %}
+                <form method="post" action="{% url 'movies:quick_add' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="title" value="{{ item.title }}">
+                  <input type="hidden" name="media_type" value="{{ item.media_type }}">
+                  <input type="hidden" name="industry" value="{{ item.industry }}">
+                  <input type="hidden" name="genre" value="{{ item.genre }}">
+                  <input type="hidden" name="release_year" value="{{ item.release_year|default:'' }}">
+                  <input type="hidden" name="director" value="{{ item.director|default:'' }}">
+                  <input type="hidden" name="cast" value="{{ item.cast|default:'' }}">
+                  <input type="hidden" name="imdb_rating" value="{{ item.imdb_rating|default:'' }}">
+                  <input type="hidden" name="where_to_watch" value="{{ item.where_to_watch|default:'' }}">
+                  <input type="hidden" name="poster_url" value="{{ item.poster_url|default:'' }}">
+                  <input type="hidden" name="review" value="{{ item.review|default:'' }}">
+                  <input type="hidden" name="status" value="plan_to_watch">
+                  <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100 fw-semibold">
+                    <i class="bi bi-plus-lg me-1"></i>1-Click Add
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Movies & Series Library — Personal App{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+  <div>
+    <h1 class="h2 fw-bold mb-1">
+      <i class="bi bi-film text-primary me-2"></i>Movies & Web Series Library
+    </h1>
+    <p class="text-muted mb-0">Track movies, binge-worthy TV series, ratings & personal watchlist</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <a href="{% url 'movies:discover' %}" class="btn btn-outline-primary rounded-pill">
+      <i class="bi bi-compass me-1"></i>Discover Popular Movies
+    </a>
+    <a href="{% url 'movies:create' %}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+      <i class="bi bi-plus-lg me-1"></i>Add Movie / Series
+    </a>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3 col-lg">
+    <div class="card border-0 bg-body-tertiary shadow-sm rounded-4 p-3 text-center h-100">
+      <div class="text-muted small fw-semibold">Total Collection</div>
+      <div class="h3 fw-bold text-primary mb-0 mt-1">{{ total_movies }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="card border-0 bg-body-tertiary shadow-sm rounded-4 p-3 text-center h-100">
+      <div class="text-muted small fw-semibold">Watched</div>
+      <div class="h3 fw-bold text-success mb-0 mt-1">{{ watched_count }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="card border-0 bg-body-tertiary shadow-sm rounded-4 p-3 text-center h-100">
+      <div class="text-muted small fw-semibold">Currently Watching</div>
+      <div class="h3 fw-bold text-warning mb-0 mt-1">{{ watching_count }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="card border-0 bg-body-tertiary shadow-sm rounded-4 p-3 text-center h-100">
+      <div class="text-muted small fw-semibold">Plan to Watch</div>
+      <div class="h3 fw-bold text-info mb-0 mt-1">{{ plan_to_watch_count }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3 col-lg">
+    <div class="card border-0 bg-body-tertiary shadow-sm rounded-4 p-3 text-center h-100">
+      <div class="text-muted small fw-semibold">Favourites</div>
+      <div class="h3 fw-bold text-danger mb-0 mt-1">⭐ {{ favorites_count }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="card border-0 bg-body-tertiary shadow-sm rounded-4 p-3 mb-4">
+  <form method="get" class="row g-3 align-items-center">
+    
+    <!-- Search Query -->
+    <div class="col-md-4">
+      <div class="input-group">
+        <span class="input-group-text bg-body border-end-0 rounded-start-pill"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control bg-body border-start-0 rounded-end-pill" placeholder="Search by title, cast, director..." value="{{ search_query }}">
+      </div>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="col-6 col-md-2">
+      <select name="status" class="form-select bg-body rounded-pill" onchange="this.form.submit()">
+        <option value="all" {% if current_status == 'all' or not current_status %}selected{% endif %}>All Statuses</option>
+        <option value="watched" {% if current_status == 'watched' %}selected{% endif %}>Watched</option>
+        <option value="watching" {% if current_status == 'watching' %}selected{% endif %}>Currently Watching</option>
+        <option value="plan_to_watch" {% if current_status == 'plan_to_watch' %}selected{% endif %}>Plan to Watch</option>
+        <option value="on_hold" {% if current_status == 'on_hold' %}selected{% endif %}>On Hold</option>
+        <option value="dropped" {% if current_status == 'dropped' %}selected{% endif %}>Dropped</option>
+        <option value="favorites" {% if current_status == 'favorites' %}selected{% endif %}>⭐ Favourites Only</option>
+      </select>
+    </div>
+
+    <!-- Industry Filter -->
+    <div class="col-6 col-md-2">
+      <select name="industry" class="form-select bg-body rounded-pill" onchange="this.form.submit()">
+        <option value="" {% if not current_industry %}selected{% endif %}>All Cinema</option>
+        <option value="bollywood" {% if current_industry == 'bollywood' %}selected{% endif %}>Bollywood</option>
+        <option value="hollywood" {% if current_industry == 'hollywood' %}selected{% endif %}>Hollywood</option>
+        <option value="regional" {% if current_industry == 'regional' %}selected{% endif %}>Regional Cinema</option>
+        <option value="asian_korean" {% if current_industry == 'asian_korean' %}selected{% endif %}>Asian / Korean</option>
+      </select>
+    </div>
+
+    <!-- Format Filter -->
+    <div class="col-6 col-md-2">
+      <select name="media_type" class="form-select bg-body rounded-pill" onchange="this.form.submit()">
+        <option value="" {% if not current_media_type %}selected{% endif %}>All Formats</option>
+        <option value="movie" {% if current_media_type == 'movie' %}selected{% endif %}>Movies</option>
+        <option value="series" {% if current_media_type == 'series' %}selected{% endif %}>Web Series / TV</option>
+        <option value="documentary" {% if current_media_type == 'documentary' %}selected{% endif %}>Documentaries</option>
+        <option value="anime" {% if current_media_type == 'anime' %}selected{% endif %}>Anime</option>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-2 text-end">
+      {% if search_query or current_status != 'all' or current_industry or current_media_type %}
+        <a href="{% url 'movies:list' %}" class="btn btn-sm btn-outline-secondary rounded-pill w-100">
+          <i class="bi bi-x-circle me-1"></i>Reset
+        </a>
+      {% else %}
+        <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100">Filter</button>
+      {% endif %}
+    </div>
+
+  </form>
+</div>
+
+<!-- Movies Grid -->
+{% if movies %}
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+    {% for movie in movies %}
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative bg-body-tertiary transition-hover">
+          
+          <!-- Favorite Badge -->
+          <a href="{% url 'movies:favorite' movie.pk %}" class="position-absolute top-0 end-0 m-3 btn btn-sm rounded-circle shadow-sm {% if movie.is_favorite %}btn-warning text-dark{% else %}btn-dark bg-opacity-50 text-white{% endif %} z-2" title="Toggle Favourite">
+            <i class="bi {% if movie.is_favorite %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+          </a>
+
+          <!-- Poster Image -->
+          <a href="{% url 'movies:detail' movie.pk %}" class="text-decoration-none text-reset overflow-hidden position-relative d-block">
+            {% if movie.poster_url %}
+              <img src="{{ movie.poster_url }}" class="card-img-top" alt="{{ movie.title }}" style="height: 320px; object-fit: cover;">
+            {% else %}
+              <div class="card-img-top bg-dark bg-opacity-75 text-light d-flex flex-column align-items-center justify-content-center p-4" style="height: 320px;">
+                <i class="bi bi-film display-1 text-primary opacity-50 mb-2"></i>
+                <h5 class="fw-bold text-center mb-0 text-white">{{ movie.title }}</h5>
+                <span class="small text-muted mt-1">{{ movie.get_media_type_display }}</span>
+              </div>
+            {% endif %}
+          </a>
+
+          <!-- Card Body -->
+          <div class="card-body p-3 d-flex flex-column">
+            
+            <div class="d-flex align-items-center gap-1 mb-2 flex-wrap">
+              <span class="badge bg-primary bg-opacity-10 text-primary border rounded-pill small">
+                {{ movie.get_media_type_display }}
+              </span>
+              <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill small">
+                {{ movie.get_industry_display }}
+              </span>
+            </div>
+
+            <h5 class="card-title fw-bold mb-1 h6 text-truncate">
+              <a href="{% url 'movies:detail' movie.pk %}" class="text-decoration-none text-body">
+                {{ movie.title }}
+              </a>
+            </h5>
+
+            <p class="card-text text-muted small mb-2">
+              {% if movie.release_year %}{{ movie.release_year }} • {% endif %}{{ movie.get_genre_display }}
+            </p>
+
+            <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
+              <!-- Rating -->
+              <div class="small fw-semibold">
+                {% if movie.my_rating %}
+                  <span class="text-warning"><i class="bi bi-star-fill me-1"></i>{{ movie.my_rating }}/10</span>
+                {% elif movie.imdb_rating %}
+                  <span class="text-info"><i class="bi bi-award me-1"></i>{{ movie.imdb_rating }}</span>
+                {% else %}
+                  <span class="text-muted">Unrated</span>
+                {% endif %}
+              </div>
+
+              <!-- Status Badge -->
+              <div>
+                {% if movie.status == 'watched' %}
+                  <span class="badge bg-success rounded-pill">Watched</span>
+                {% elif movie.status == 'watching' %}
+                  <span class="badge bg-warning text-dark rounded-pill">Watching</span>
+                {% elif movie.status == 'plan_to_watch' %}
+                  <span class="badge bg-info text-dark rounded-pill">Plan to Watch</span>
+                {% else %}
+                  <span class="badge bg-secondary rounded-pill">{{ movie.get_status_display }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Card Footer Actions -->
+          <div class="card-footer bg-transparent border-top-0 p-3 pt-0 d-flex gap-2">
+            <a href="{% url 'movies:detail' movie.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill flex-grow-1">View Details</a>
+            <a href="{% url 'movies:edit' movie.pk %}" class="btn btn-sm btn-outline-primary rounded-circle" title="Edit"><i class="bi bi-pencil"></i></a>
+          </div>
+
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card border-0 bg-body-tertiary shadow-sm rounded-4 text-center p-5 my-5">
+    <div class="py-4">
+      <i class="bi bi-film display-1 text-primary opacity-50 mb-3"></i>
+      <h3 class="fw-bold mb-2">No Movies Found</h3>
+      <p class="text-muted mb-4 max-w-md mx-auto">
+        {% if search_query or current_status != 'all' or current_industry %}
+          No titles matched your selected filters or search terms. Try resetting your search.
+        {% else %}
+          Your movie watchlist is currently empty. Start building your collection by adding a movie or exploring curated titles!
+        {% endif %}
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        {% if search_query or current_status != 'all' or current_industry %}
+          <a href="{% url 'movies:list' %}" class="btn btn-outline-secondary rounded-pill px-4">Reset Filters</a>
+        {% endif %}
+        <a href="{% url 'movies:discover' %}" class="btn btn-outline-primary rounded-pill px-4">Discover Movies</a>
+        <a href="{% url 'movies:create' %}" class="btn btn-primary rounded-pill px-4 fw-semibold">Add Movie</a>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
