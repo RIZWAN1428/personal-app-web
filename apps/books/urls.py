@@ -15,6 +15,7 @@ urlpatterns = [
     path("<int:pk>/edit/", views.BookUpdateView.as_view(), name="edit"),
     path("<int:pk>/delete/", views.BookDeleteView.as_view(), name="delete"),
     path("<int:pk>/read/", views.BookPDFReaderView.as_view(), name="reader"),
+    path("<int:pk>/pdf-proxy/", views.proxy_pdf, name="pdf_proxy"),
     path("<int:pk>/progress/", views.update_reading_progress, name="progress"),
     path("<int:pk>/status/<str:new_status>/", views.quick_change_status, name="change_status"),
     path("<int:pk>/favorite/", views.toggle_favorite, name="favorite"),

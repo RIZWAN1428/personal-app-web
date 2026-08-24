@@ -87,7 +87,11 @@ class Book(models.Model):
     def pdf_source(self):
         if self.pdf_file:
             return self.pdf_file.url
-        return self.pdf_url
+        if self.pdf_url:
+            from django.urls import reverse
+            return reverse("books:pdf_proxy", kwargs={"pk": self.pk})
+        return ""
+
 
 
 class BookNote(models.Model):

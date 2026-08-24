@@ -6,7 +6,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import HttpResponseRedirect, JsonResponse
+import urllib.request
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
@@ -139,6 +140,46 @@ class BookPDFReaderView(LoginRequiredMixin, DetailView):
         context["notes"] = self.object.notes.all()
         context["note_form"] = BookNoteForm()
         return context
+
+
+@login_required
+def proxy_pdf(request, pk):
+    """
+    Proxies external PDF requests through Django backend to bypass browser CORS restrictions.
+    """
+    book = get_object_or_404(Book, pk=pk, user=request.user)
+    if book.pdf_file:
+        return HttpResponseRedirect(book.pdf_file.url)
+
+    url = book.pdf_url
+    if not url:
+        raise Http404("No PDF URL found for this book.")
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "application/pdf,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            }
+        )
+        response = urllib.request.urlopen(req, timeout=25)
+
+        def stream_bytes():
+            while True:
+                chunk = response.read(64 * 1024)
+                if not chunk:
+                    break
+                yield chunk
+
+        res = StreamingHttpResponse(stream_bytes(), content_type="application/pdf")
+        res["Access-Control-Allow-Origin"] = "*"
+        res["Content-Disposition"] = f'inline; filename="{book.title}.pdf"'
+        if "Content-Length" in response.headers:
+            res["Content-Length"] = response.headers["Content-Length"]
+        return res
+    except Exception as e:
+        return HttpResponse(f"Error proxying PDF: {str(e)}", status=502)
 
 
 @login_required
