@@ -14,7 +14,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, T
 
 from .forms import BookForm, BookNoteForm
 from .models import Book, BookNote
-from .services import get_curated_free_books, search_open_library_books
+from .services import get_curated_free_books, resolve_direct_pdf_url, search_open_library_books
 
 
 class BookListView(LoginRequiredMixin, ListView):
@@ -151,9 +151,11 @@ def proxy_pdf(request, pk):
     if book.pdf_file:
         return HttpResponseRedirect(book.pdf_file.url)
 
-    url = book.pdf_url
-    if not url:
+    raw_url = book.pdf_url
+    if not raw_url:
         raise Http404("No PDF URL found for this book.")
+
+    url = resolve_direct_pdf_url(raw_url)
 
     try:
         req = urllib.request.Request(

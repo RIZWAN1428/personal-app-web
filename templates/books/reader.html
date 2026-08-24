@@ -68,6 +68,9 @@
         <button type="button" class="btn btn-sm btn-outline-light" id="zoom-out-btn" title="Zoom Out"><i class="bi bi-dash-lg"></i></button>
         <button type="button" class="btn btn-sm btn-outline-light" id="zoom-in-btn" title="Zoom In"><i class="bi bi-plus-lg"></i></button>
         <button type="button" class="btn btn-sm btn-outline-light" id="night-mode-btn" title="Toggle Night/Dark Inversion"><i class="bi bi-moon-stars"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-info" id="toggle-embed-btn" title="Switch between PDF Canvas and Interactive Web View">
+          <i class="bi bi-window-sidebar me-1"></i>Web Reader
+        </button>
         <button type="button" class="btn btn-sm btn-warning text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#readerNoteModal">
           <i class="bi bi-sticky-fill me-1"></i>Note
         </button>
@@ -83,6 +86,7 @@
         <div>Loading PDF & resuming page {{ book.current_page }}...</div>
       </div>
       <canvas id="pdf-canvas" class="d-none"></canvas>
+      <iframe id="embed-iframe" class="d-none w-100 rounded-3 shadow border-0" style="min-height: 82vh;" allowfullscreen></iframe>
     </div>
   </div>
 </div>
@@ -254,6 +258,44 @@
     }
   });
 
+  // Web View / Embed Reader Toggle
+  const rawUrl = "{{ book.pdf_url|escapejs }}";
+  const iframe = document.getElementById('embed-iframe');
+  const embedBtn = document.getElementById('toggle-embed-btn');
+  let isEmbedMode = false;
+
+  function getEmbedSrc() {
+    if (rawUrl && (rawUrl.includes('archive.org/details/') || rawUrl.includes('archive.org/stream/'))) {
+      let embedUrl = rawUrl.replace('/details/', '/embed/').replace('/stream/', '/embed/');
+      // strip /page/n31/mode/2up suffix if present for clean embed
+      embedUrl = embedUrl.replace(/\/page\/.*$/, '');
+      return embedUrl;
+    }
+    return pdfUrl;
+  }
+
+  function switchToEmbedMode() {
+    isEmbedMode = true;
+    iframe.src = getEmbedSrc();
+    document.getElementById('loading-spinner').classList.add('d-none');
+    canvas.classList.add('d-none');
+    iframe.classList.remove('d-none');
+    if (embedBtn) embedBtn.classList.replace('btn-outline-info', 'btn-info');
+  }
+
+  if (embedBtn) {
+    embedBtn.addEventListener('click', function() {
+      if (!isEmbedMode) {
+        switchToEmbedMode();
+      } else {
+        isEmbedMode = false;
+        iframe.classList.add('d-none');
+        canvas.classList.remove('d-none');
+        if (embedBtn) embedBtn.classList.replace('btn-info', 'btn-outline-info');
+      }
+    });
+  }
+
   // Load PDF Document
   if (pdfUrl) {
     pdfjsLib.getDocument(pdfUrl).promise.then(function(pdfDoc_) {
@@ -270,14 +312,17 @@
     }).catch(function(error) {
       console.error('PDF.js error:', error);
       document.getElementById('loading-spinner').innerHTML = `
-        <div class="alert alert-danger rounded-4 p-4 text-center">
-          <i class="bi bi-exclamation-triangle-fill display-4 text-danger mb-2 d-block"></i>
-          <h5 class="fw-bold mb-2">Could Not Render PDF Preview</h5>
+        <div class="alert alert-warning rounded-4 p-4 text-center">
+          <i class="bi bi-book-half display-4 text-warning mb-2 d-block"></i>
+          <h5 class="fw-bold mb-2">Switching to Web Reader...</h5>
           <p class="mb-3 text-muted small">${error.message}</p>
-          <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
+          <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap mb-3">
+            <button type="button" onclick="switchToEmbedMode()" class="btn btn-sm btn-primary rounded-pill px-3">
+              <i class="bi bi-window-sidebar me-1"></i>Open Web Book Reader
+            </button>
             {% if book.pdf_url %}
               <a href="{{ book.pdf_url }}" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3">
-                <i class="bi bi-box-arrow-up-right me-1"></i>Open Direct Link
+                <i class="bi bi-box-arrow-up-right me-1"></i>Open Archive Link
               </a>
             {% endif %}
             <a href="{% url 'books:edit' book.pk %}" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-semibold">
@@ -286,6 +331,10 @@
           </div>
         </div>
       `;
+      // Auto-fallback to embed mode for web reader URLs
+      if (rawUrl) {
+        setTimeout(switchToEmbedMode, 1500);
+      }
     });
   } else {
     document.getElementById('loading-spinner').innerHTML = `

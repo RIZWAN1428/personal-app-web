@@ -3,10 +3,55 @@ Service helper for Books discovery, Open Library search, and curated free public
 """
 import json
 import logging
+import re
 import urllib.parse
 import urllib.request
 
 logger = logging.getLogger(__name__)
+
+
+def resolve_direct_pdf_url(url):
+    """
+    Resolves external webpage URLs (e.g. Internet Archive details page, Google Drive links)
+    to direct raw PDF download URLs.
+    """
+    if not url:
+        return ""
+
+    url = url.strip()
+
+    # Internet Archive resolution
+    if "archive.org/details/" in url or "archive.org/stream/" in url or "archive.org/embed/" in url:
+        match = re.search(r'archive\.org/(?:details|stream|embed)/([^/]+)(?:/([^/]+))?', url)
+        if match:
+            item_id = match.group(1)
+            sub_file = match.group(2) if match.group(2) else ""
+            meta_url = f"https://archive.org/metadata/{item_id}"
+            try:
+                req = urllib.request.Request(meta_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+                with urllib.request.urlopen(req, timeout=8) as res:
+                    data = json.loads(res.read().decode("utf-8"))
+                    files = data.get("files", [])
+                    pdf_files = [f["name"] for f in files if f.get("name", "").endswith(".pdf")]
+                    if pdf_files:
+                        if sub_file:
+                            sub_clean = sub_file.lower()
+                            for pdf in pdf_files:
+                                if sub_clean in pdf.lower():
+                                    return f"https://archive.org/download/{item_id}/{pdf}"
+                        main_pdfs = [p for p in pdf_files if not p.endswith("_text.pdf")]
+                        chosen = main_pdfs[0] if main_pdfs else pdf_files[0]
+                        return f"https://archive.org/download/{item_id}/{chosen}"
+            except Exception as e:
+                logger.warning(f"Archive metadata lookup error: {e}")
+
+    # Google Drive resolution
+    drive_match = re.search(r'drive\.google\.com/(?:file/d/|open\?id=)([a-zA-Z0-9_-]+)', url)
+    if drive_match:
+        file_id = drive_match.group(1)
+        return f"https://drive.google.com/uc?export=download&id={file_id}"
+
+    return url
 
 # Curated catalog of free, permanent, public domain and open-access books with verified PDF links
 CURATED_FREE_BOOKS = [
