@@ -2,22 +2,32 @@
  * Service Worker for Personal App PWA.
  *
  * Strategy:
+ *   - App shell (all main routes + assets): Pre-cached on install
  *   - Static assets (CSS, JS, fonts, icons): Cache-first
- *   - HTML pages: Network-first, fall back to cache
- *   - Form POSTs: Pass through when online; queue to IndexedDB when offline
+ *   - HTML pages: Network-first, fallback to cache (ignoreSearch: true)
+ *   - Form POSTs: Pass through when online; queue to IndexedDB & serve cached page when offline
  *   - Background Sync: Replay queued POSTs when connectivity returns
  */
-const CACHE_NAME = 'personalapp-v2';
+const CACHE_NAME = 'personalapp-v3';
 const SYNC_TAG = 'personalapp-sync';
 
-// App shell — files to pre-cache on install
+// App shell — all key pages & assets to pre-cache on install
 const APP_SHELL = [
   '/',
+  '/salah/',
+  '/notes/',
+  '/checklist/',
+  '/reminders/',
+  '/streaks/',
+  '/quran/',
+  '/hadith/',
+  '/books/',
+  '/movies/',
   '/static/css/app.css',
   '/static/css/theme.css',
   '/static/js/offline-db.js',
   '/static/js/offline-sync.js',
-  '/static/manifest.json',
+  '/manifest.json',
 ];
 
 // External CDN resources to cache on first fetch
@@ -28,18 +38,18 @@ const CDN_PATTERNS = [
 ];
 
 // ───────────────────────────────────────────────
-// INSTALL — Pre-cache the app shell
+// INSTALL — Pre-cache the entire app shell
 // ───────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Pre-caching app shell');
+        console.log('[SW] Pre-caching full app shell');
         return cache.addAll(APP_SHELL);
       })
       .then(() => self.skipWaiting())
       .catch((err) => {
-        console.warn('[SW] Some app shell files failed to cache:', err);
+        console.warn('[SW] Pre-cache warning:', err);
         return self.skipWaiting();
       })
   );
@@ -97,7 +107,7 @@ self.addEventListener('fetch', (event) => {
  * Cache-first strategy for static assets.
  */
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
+  const cached = await caches.match(request, { ignoreSearch: true });
   if (cached) return cached;
 
   try {
@@ -108,8 +118,7 @@ async function cacheFirst(request) {
     }
     return response;
   } catch (err) {
-    // Return a basic offline response if nothing cached
-    return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+    return new Response('Offline Asset Unavailable', { status: 503, statusText: 'Service Unavailable' });
   }
 }
 
@@ -125,41 +134,43 @@ async function networkFirst(request) {
     }
     return response;
   } catch (err) {
-    // Network failed — serve cached version
-    const cached = await caches.match(request);
+    // Network failed — serve cached version (ignoring query params like ?city=Jaunpur)
+    let cached = await caches.match(request);
+    if (!cached) {
+      cached = await caches.match(request, { ignoreSearch: true });
+    }
+    if (!cached) {
+      const url = new URL(request.url);
+      cached = await caches.match(url.pathname, { ignoreSearch: true });
+    }
     if (cached) return cached;
 
-    // Nothing cached — return the cached home page as fallback
-    const fallback = await caches.match('/');
+    // Fallback to home page cache
+    const fallback = await caches.match('/', { ignoreSearch: true });
     if (fallback) return fallback;
 
     return new Response(
-      '<html><body style="font-family:Inter,sans-serif;text-align:center;padding:4rem;">' +
-      '<h2>📡 You are offline</h2>' +
-      '<p>Please connect to the internet to load this page for the first time.</p>' +
-      '</body></html>',
+      '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Offline</title><link rel="stylesheet" href="/static/css/app.css"></head><body class="p-5 text-center"><h2>📡 You are offline</h2><p>Please connect to the internet once to sync.</p></body></html>',
       { status: 503, headers: { 'Content-Type': 'text/html' } }
     );
   }
 }
 
 /**
- * Handle POST requests — pass through when online, queue when offline.
+ * Handle POST requests — pass through when online, queue & return cached HTML when offline.
  */
 async function handlePost(event) {
   try {
     const response = await fetch(event.request.clone());
     return response;
   } catch (err) {
-    // Network failed — we're offline. Queue the form data.
+    // Network failed — we're offline. Queue the form data safely.
     try {
       const formData = await event.request.clone().text();
       const url = event.request.url;
 
-      // Import the offline-db helper
       importScripts('/static/js/offline-db.js');
 
-      // Extract CSRF token from form data
       let csrfToken = '';
       const csrfMatch = formData.match(/csrfmiddlewaretoken=([^&]+)/);
       if (csrfMatch) {
@@ -168,37 +179,44 @@ async function handlePost(event) {
 
       await self.offlineDB.addToQueue(url, 'POST', formData, csrfToken);
 
-      // Register background sync
       if ('sync' in self.registration) {
         await self.registration.sync.register(SYNC_TAG);
       }
 
-      // Notify the page that we queued the action
+      // Notify open windows
       const clients = await self.clients.matchAll();
       clients.forEach((client) => {
         client.postMessage({
           type: 'QUEUED_OFFLINE',
           url: url,
-          message: 'Saved offline — will sync when connected.',
+          message: 'Saved offline — will auto-sync when back online.',
         });
       });
 
-      // Return a redirect-like response back to the referring page
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': event.request.referrer || '/',
-        },
-      });
+      // Serve referrer page or request page from cache so browser navigation DOES NOT BREAK
+      const referrer = event.request.referrer;
+      let cached = null;
+      if (referrer) {
+        cached = await caches.match(referrer, { ignoreSearch: true });
+      }
+      if (!cached) {
+        cached = await caches.match(url, { ignoreSearch: true });
+      }
+      if (!cached) {
+        cached = await caches.match('/', { ignoreSearch: true });
+      }
+
+      if (cached) {
+        return cached;
+      }
+
+      return new Response(
+        '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Saved Offline</title><link rel="stylesheet" href="/static/css/app.css"></head><body class="p-4 text-center"><h3>📥 Saved Offline!</h3><p>Your changes were saved locally and will auto-sync when online.</p><a href="/" class="btn btn-primary rounded-pill mt-3">Back to Dashboard</a></body></html>',
+        { headers: { 'Content-Type': 'text/html' } }
+      );
     } catch (queueErr) {
       console.error('[SW] Failed to queue offline:', queueErr);
-      return new Response(
-        '<html><body style="font-family:Inter,sans-serif;text-align:center;padding:4rem;">' +
-        '<h2>⚠️ Offline — could not save</h2>' +
-        '<p>Please try again when connected.</p>' +
-        '</body></html>',
-        { status: 503, headers: { 'Content-Type': 'text/html' } }
-      );
+      return new Response('Offline Save Error', { status: 500 });
     }
   }
 }
@@ -268,7 +286,6 @@ async function replayQueue() {
         await self.offlineDB.removeFromQueue(item.id);
         synced++;
       } else if (response.status === 403) {
-        // CSRF token expired — we'll need a fresh one. Remove and let user retry.
         console.warn('[SW] CSRF expired for queued item, removing:', item.url);
         await self.offlineDB.removeFromQueue(item.id);
         failed++;
@@ -279,7 +296,6 @@ async function replayQueue() {
     } catch (err) {
       console.error('[SW] Sync fetch error:', err);
       failed++;
-      // Don't remove — will retry on next sync
     }
   }
 
