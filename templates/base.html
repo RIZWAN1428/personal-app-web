@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Personal App{% endblock %}</title>
 
+  <!-- PWA Manifest & Mobile Meta -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Personal App">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+
   <!-- Early Theme Init: prevents screen flicker on reload, defaults to LIGHT -->
   <script>
     (function() {
@@ -62,6 +70,14 @@
           </ul>
 
           <ul class="navbar-nav ms-auto align-items-xl-center gap-2 mt-2 mt-xl-0">
+            <!-- Offline Status Indicator -->
+            <li class="nav-item">
+              <span id="offlineIndicator" class="offline-indicator d-none d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill">
+                <span id="offlineDot" class="offline-dot bg-warning"></span>
+                <span id="offlineLabel" class="small fw-semibold">Offline</span>
+                <span id="syncPendingBadge" class="badge bg-warning text-dark rounded-pill ms-1 d-none">0</span>
+              </span>
+            </li>
             <!-- Theme Toggle Button (Light / Dark) -->
             <li class="nav-item">
               <button id="themeToggleBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1.5 px-3 py-1.5 shadow-sm" type="button" aria-label="Toggle theme">
@@ -174,6 +190,10 @@
       });
     })();
   </script>
+
+  <!-- Offline-First PWA Scripts -->
+  <script src="{% static 'js/offline-db.js' %}"></script>
+  <script src="{% static 'js/offline-sync.js' %}"></script>
 
   {% block extra_scripts %}{% endblock %}
 </body>

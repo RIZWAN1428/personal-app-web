@@ -442,3 +442,136 @@ body {
 }
 
 
+/* ==========================================================================
+   Offline-First PWA — UI Styles
+   ========================================================================== */
+
+/* ─── Navbar Offline Indicator ─── */
+.offline-indicator {
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  color: #b45309;
+  font-size: 0.78rem;
+  transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .offline-indicator {
+  background: rgba(255, 193, 7, 0.12);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: #fbbf24;
+}
+
+.offline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.offline-pulse {
+  animation: offlinePulse 2s ease-in-out infinite;
+}
+
+@keyframes offlinePulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+/* ─── Toast Notifications ─── */
+.offline-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-family: var(--app-font-sans);
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+  max-width: 92vw;
+  animation: toastSlideUp 0.35s ease-out;
+}
+
+.offline-toast-warning {
+  background: rgba(255, 237, 213, 0.95);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.offline-toast-success {
+  background: rgba(209, 250, 229, 0.95);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.offline-toast-danger {
+  background: rgba(254, 226, 226, 0.95);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.offline-toast-info {
+  background: rgba(219, 234, 254, 0.95);
+  color: #1e40af;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+[data-bs-theme="dark"] .offline-toast-warning {
+  background: rgba(120, 53, 15, 0.9);
+  color: #fef3c7;
+}
+[data-bs-theme="dark"] .offline-toast-success {
+  background: rgba(6, 78, 59, 0.9);
+  color: #d1fae5;
+}
+[data-bs-theme="dark"] .offline-toast-danger {
+  background: rgba(127, 29, 29, 0.9);
+  color: #fee2e2;
+}
+[data-bs-theme="dark"] .offline-toast-info {
+  background: rgba(30, 58, 138, 0.9);
+  color: #dbeafe;
+}
+
+.offline-toast-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  color: inherit;
+  padding: 0 0.25rem;
+}
+.offline-toast-close:hover {
+  opacity: 1;
+}
+
+.offline-toast-fade {
+  animation: toastFadeOut 0.4s ease-in forwards;
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes toastFadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(1rem);
+  }
+}
