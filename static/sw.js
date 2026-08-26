@@ -7,7 +7,7 @@
  *   - Form POSTs: Pass through when online; queue to IndexedDB when offline
  *   - Background Sync: Replay queued POSTs when connectivity returns
  */
-const CACHE_NAME = 'personalapp-v1';
+const CACHE_NAME = 'personalapp-v2';
 const SYNC_TAG = 'personalapp-sync';
 
 // App shell — files to pre-cache on install
