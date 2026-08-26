@@ -66,6 +66,24 @@ class HabitCalendarDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return Habit.objects.filter(user=self.request.user)
 
+    def dispatch(self, request, *args, **kwargs):
+        # Ensure default habits exist
+        ensure_default_habits(request.user)
+        pk = kwargs.get("pk")
+        # If habit does not belong to current user, check if we can redirect to matching category
+        if not Habit.objects.filter(pk=pk, user=request.user).exists():
+            global_habit = Habit.objects.filter(pk=pk).first()
+            if global_habit:
+                user_match = Habit.objects.filter(user=request.user, category=global_habit.category).first()
+                if user_match:
+                    return redirect("streaks:detail", pk=user_match.pk)
+            # Otherwise redirect to user's first habit
+            user_first = Habit.objects.filter(user=request.user).first()
+            if user_first:
+                return redirect("streaks:detail", pk=user_first.pk)
+            return redirect("streaks:dashboard")
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         habit = self.object

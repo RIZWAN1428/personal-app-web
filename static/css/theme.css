@@ -1,0 +1,257 @@
+/* ==========================================================================
+   🎨 APP THEME CONFIGURATION
+   ==========================================================================
+   To change the color theme for the entire app UI, simply modify the
+   3 CORE LIGHT COLORS below!
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------------
+     👉 3 CORE PROFESSIONAL LIGHT COLORS:
+     ------------------------------------------------------------------------ */
+  --theme-primary: #2563eb;    /* 1. PRIMARY ACCENT : Modern Professional Blue (Buttons, Active Nav, Highlights) */
+  --theme-bg:      #f8fafc;    /* 2. BACKGROUND     : Soft Light Neutral Canvas */
+  --theme-surface: #ffffff;    /* 3. SURFACE/CARD   : Pure White for standard Cards, Navbar, Panels */
+
+  /* Supporting Functional Accents */
+  --theme-text:       #0f172a; /* Deep Slate text for maximum readability */
+  --theme-text-muted: #64748b; /* Subtle Slate for subtitles and secondary metadata */
+  --theme-border:     #e2e8f0; /* Crisp border for cards and dividers */
+  --theme-cross-mark: #dc2626; /* Vibrant Red for the ❌ Cross mark */
+  --theme-flame:      #ea580c; /* Warm Orange for Flame Streaks */
+
+  /* Light Theme Dashboard Tile Colors (Soft, Professional Pastels) */
+  --tile-salah-bg:     #ecfdf5;
+  --tile-salah-text:   #065f46;
+  --tile-salah-accent: #059669;
+
+  --tile-streaks-bg:     #fff1f2;
+  --tile-streaks-text:   #9f1239;
+  --tile-streaks-accent: #e11d48;
+
+  --tile-quran-bg:     #eff6ff;
+  --tile-quran-text:   #1e40af;
+  --tile-quran-accent: #2563eb;
+
+  --tile-hadith-bg:     #f5f3ff;
+  --tile-hadith-text:   #5b21b6;
+  --tile-hadith-accent: #7c3aed;
+
+  --tile-books-bg:     #fffbeb;
+  --tile-books-text:   #92400e;
+  --tile-books-accent: #d97706;
+
+  --tile-movies-bg:     #faf5ff;
+  --tile-movies-text:   #6b21a8;
+  --tile-movies-accent: #9333ea;
+
+  --tile-notes-bg:     #f0fdfa;
+  --tile-notes-text:   #115e59;
+  --tile-notes-accent: #0d9488;
+
+  --tile-checklist-bg:     #f1f5f9;
+  --tile-checklist-text:   #1e293b;
+  --tile-checklist-accent: #475569;
+
+  --tile-reminders-bg:     #fefce8;
+  --tile-reminders-text:   #854d0e;
+  --tile-reminders-accent: #ca8a04;
+}
+
+/* ==========================================================================
+   Dark Mode Support (Deep Slate Surfaces with Radiant Accents)
+   ========================================================================== */
+[data-bs-theme="dark"] {
+  --theme-primary: #3b82f6;
+  --theme-bg:      #0b1120;
+  --theme-surface: #1e293b;
+  --theme-text:       #f8fafc;
+  --theme-text-muted: #94a3b8;
+  --theme-border:     #334155;
+  --theme-cross-mark: #ef4444;
+  --theme-flame:      #f97316;
+
+  /* Dark Theme Dashboard Tile Colors */
+  --tile-salah-bg:     rgba(5, 150, 105, 0.16);
+  --tile-salah-text:   #34d399;
+  --tile-salah-accent: #10b981;
+
+  --tile-streaks-bg:     rgba(225, 29, 72, 0.16);
+  --tile-streaks-text:   #fb7185;
+  --tile-streaks-accent: #f43f5e;
+
+  --tile-quran-bg:     rgba(37, 99, 235, 0.16);
+  --tile-quran-text:   #60a5fa;
+  --tile-quran-accent: #3b82f6;
+
+  --tile-hadith-bg:     rgba(124, 58, 237, 0.16);
+  --tile-hadith-text:   #a78bfa;
+  --tile-hadith-accent: #8b5cf6;
+
+  --tile-books-bg:     rgba(217, 119, 6, 0.16);
+  --tile-books-text:   #fbbf24;
+  --tile-books-accent: #f59e0b;
+
+  --tile-movies-bg:     rgba(147, 51, 234, 0.16);
+  --tile-movies-text:   #c084fc;
+  --tile-movies-accent: #a855f7;
+
+  --tile-notes-bg:     rgba(13, 148, 136, 0.16);
+  --tile-notes-text:   #2dd4bf;
+  --tile-notes-accent: #14b8a6;
+
+  --tile-checklist-bg:     rgba(71, 85, 105, 0.25);
+  --tile-checklist-text:   #cbd5e1;
+  --tile-checklist-accent: #94a3b8;
+
+  --tile-reminders-bg:     rgba(202, 138, 4, 0.16);
+  --tile-reminders-text:   #fde047;
+  --tile-reminders-accent: #eab308;
+}
+
+/* Base Body Styling */
+body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  min-height: 100vh;
+}
+
+/* Top Navbar */
+.navbar {
+  background-color: var(--theme-surface) !important;
+  border-bottom: 1px solid var(--theme-border) !important;
+}
+
+/* ==========================================================================
+   Dashboard Tile Cards (High Contrast & Visible in Light & Dark Mode)
+   ========================================================================== */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.tile-card {
+  text-decoration: none !important;
+  color: inherit !important;
+  display: block;
+}
+
+.tile-box {
+  border-radius: 16px;
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--theme-border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tile-card:hover .tile-box {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
+  border-color: var(--theme-primary);
+}
+
+.tile-box .tile-title {
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.tile-box .tile-desc {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 0;
+}
+
+.tile-box .tile-badge {
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.tile-box .tile-footer {
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Specific Tile Themes */
+.tile-salah .tile-box {
+  background-color: var(--tile-salah-bg);
+  color: var(--tile-salah-text);
+  border-color: rgba(5, 150, 105, 0.2);
+}
+.tile-salah .tile-badge {
+  background-color: var(--tile-salah-accent);
+  color: #ffffff;
+}
+
+.tile-streaks .tile-box {
+  background-color: var(--tile-streaks-bg);
+  color: var(--tile-streaks-text);
+  border-color: rgba(225, 29, 72, 0.2);
+}
+.tile-streaks .tile-badge {
+  background-color: var(--tile-streaks-accent);
+  color: #ffffff;
+}
+
+.tile-books .tile-box {
+  background-color: var(--tile-books-bg);
+  color: var(--tile-books-text);
+  border-color: rgba(217, 119, 6, 0.2);
+}
+.tile-books .tile-badge {
+  background-color: var(--tile-books-accent);
+  color: #ffffff;
+}
+
+.tile-movies .tile-box {
+  background-color: var(--tile-movies-bg);
+  color: var(--tile-movies-text);
+  border-color: rgba(147, 51, 234, 0.2);
+}
+.tile-movies .tile-badge {
+  background-color: var(--tile-movies-accent);
+  color: #ffffff;
+}
+
+.tile-notes .tile-box {
+  background-color: var(--tile-notes-bg);
+  color: var(--tile-notes-text);
+  border-color: rgba(13, 148, 136, 0.2);
+}
+.tile-notes .tile-badge {
+  background-color: var(--tile-notes-accent);
+  color: #ffffff;
+}
+
+.tile-checklist .tile-box {
+  background-color: var(--tile-checklist-bg);
+  color: var(--tile-checklist-text);
+  border-color: rgba(71, 85, 105, 0.2);
+}
+.tile-checklist .tile-badge {
+  background-color: var(--tile-checklist-accent);
+  color: #ffffff;
+}
+
+.tile-reminders .tile-box {
+  background-color: var(--tile-reminders-bg);
+  color: var(--tile-reminders-text);
+  border-color: rgba(202, 138, 4, 0.2);
+}
+.tile-reminders .tile-badge {
+  background-color: var(--tile-reminders-accent);
+  color: #ffffff;
+}

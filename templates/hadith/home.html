@@ -40,7 +40,7 @@
             "{{ daily_hadith.translation_text }}"
           </p>
 
-          <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3 border-top border-secondary">
             <span class="text-white-50 small">Chapter: {{ daily_hadith.chapter_name }}</span>
             <a href="{% url 'hadith:detail' daily_hadith.collection_id daily_hadith.hadith_number %}" class="btn btn-sm btn-outline-light rounded-pill">
               Read in Context &rarr;

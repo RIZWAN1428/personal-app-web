@@ -48,180 +48,136 @@
 <!-- Tile Grid -->
 <div class="tile-grid">
   <!-- Salah Timings Tile -->
-  <a href="{% url 'salah:dashboard' %}" class="tile-card">
-    <div class="card bg-success text-white shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-clock-history fs-3"></i>
-            <span class="badge bg-white text-success rounded-pill fw-bold">{{ salah_info.completed_count }}/5 Done</span>
-          </div>
-          <h5 class="card-title fw-bold">Salah Timings</h5>
-          <p class="card-text small opacity-75">
-            Next: <strong>{{ salah_info.next_prayer.name }}</strong> at {{ salah_info.next_prayer.time }}
-          </p>
+  <a href="{% url 'salah:dashboard' %}" class="tile-card tile-salah">
+    <div class="tile-box shadow-sm">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <i class="bi bi-clock-history fs-3"></i>
+          <span class="tile-badge">{{ salah_info.completed_count }}/5 Done</span>
         </div>
-        <span class="small text-white-50 mt-2">Tap for times & habit tracker &rarr;</span>
+        <h5 class="tile-title">Salah Timings</h5>
+        <p class="tile-desc">
+          Next: <strong>{{ salah_info.next_prayer.name }}</strong> at {{ salah_info.next_prayer.time }}
+        </p>
+      </div>
+      <div class="tile-footer">
+        <span>Tap for times & tracker &rarr;</span>
       </div>
     </div>
   </a>
 
   <!-- Streak Tracker Tile -->
-  <a href="{% url 'streaks:dashboard' %}" class="tile-card">
-    <div class="card bg-danger text-white shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-fire fs-3 text-warning"></i>
-            <span class="badge bg-white text-danger rounded-pill fw-bold">🔥 {{ streak_max_days }} Days</span>
-          </div>
-          <h5 class="card-title fw-bold">Streak Tracker</h5>
-          <p class="card-text small opacity-75">
-            GitHub, DSA, Quran, Naukri & Jobs ({{ streak_done_today }}/{{ streak_total_habits }} Today)
-          </p>
+  <a href="{% url 'streaks:dashboard' %}" class="tile-card tile-streaks">
+    <div class="tile-box shadow-sm">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <i class="bi bi-fire fs-3 text-danger"></i>
+          <span class="tile-badge">🔥 {{ streak_max_days }} Days</span>
         </div>
-        <span class="small text-white-50 mt-2">Maintain daily streak &rarr;</span>
+        <h5 class="tile-title">Streak Tracker</h5>
+        <p class="tile-desc">
+          GitHub, DSA, Quran, Naukri & Jobs ({{ streak_done_today }}/{{ streak_total_habits }} Today)
+        </p>
+      </div>
+      <div class="tile-footer">
+        <span>Maintain daily streak &rarr;</span>
       </div>
     </div>
   </a>
 
-  <!-- Quran Tile -->
-  <!-- <a href="{% url 'quran:home' %}" class="tile-card">
-    <div class="card bg-primary text-white shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-book fs-3"></i>
-            {% if quran_progress %}
-              <span class="badge bg-white text-primary rounded-pill fw-bold">{{ quran_progress.khatam_percentage }}% Khatam</span>
-            {% endif %}
-          </div>
-          <h5 class="card-title fw-bold">Holy Quran</h5>
-          <p class="card-text small opacity-75">
-            {% if quran_progress and quran_progress.surah_name %}
-              Resume: <strong>{{ quran_progress.surah_name }}</strong> ({{ quran_progress.last_surah }}:{{ quran_progress.last_ayah }})
-            {% else %}
-              Read, listen, and track recitation
-            {% endif %}
-          </p>
-        </div>
-        <span class="small text-white-50 mt-2">Tap to read & listen &rarr;</span>
-      </div>
-    </div>
-  </a> -->
-
-  <!-- Hadith Tile -->
-  <!-- <a href="{% url 'hadith:home' %}" class="tile-card">
-    <div class="card bg-dark text-white shadow-sm h-100 border-secondary">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-chat-square-quote fs-3 text-warning"></i>
-            <span class="badge bg-secondary rounded-pill">{{ hadith_bookmarks_count }} Bookmarks</span>
-          </div>
-          <h5 class="card-title fw-bold">Hadith Books</h5>
-          <p class="card-text small opacity-75">
-            Sahih al-Bukhari, Muslim, 40 Nawawi & more.
-          </p>
-        </div>
-        <span class="small text-white-50 mt-2">Explore 8 collections &rarr;</span>
-      </div>
-    </div>
-  </a> -->
-
   <!-- Books Tile -->
-  <a href="{% url 'books:list' %}" class="tile-card">
-    <div class="card bg-danger text-white shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-book-half fs-3"></i>
-            <span class="badge bg-white text-danger rounded-pill fw-bold">{{ books_completed_count }} Read</span>
-          </div>
-          <h5 class="card-title fw-bold">Books Library</h5>
-          <p class="card-text small opacity-75">
-            {% if active_book %}
-              Reading: <strong>{{ active_book.title|truncatechars:20 }}</strong> (p. {{ active_book.current_page }})
-            {% else %}
-              {{ books_total }} book{{ books_total|pluralize }} • {{ books_reading_count }} reading
-            {% endif %}
-          </p>
+  <a href="{% url 'books:list' %}" class="tile-card tile-books">
+    <div class="tile-box shadow-sm">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <i class="bi bi-book-half fs-3"></i>
+          <span class="tile-badge">{{ books_completed_count }} Read</span>
         </div>
-        <span class="small text-white-50 mt-2">Manage & read PDFs &rarr;</span>
+        <h5 class="tile-title">Books Library</h5>
+        <p class="tile-desc">
+          {% if active_book %}
+            Reading: <strong>{{ active_book.title|truncatechars:20 }}</strong> (p. {{ active_book.current_page }})
+          {% else %}
+            {{ books_total }} book{{ books_total|pluralize }} • {{ books_reading_count }} reading
+          {% endif %}
+        </p>
+      </div>
+      <div class="tile-footer">
+        <span>Manage & read PDFs &rarr;</span>
       </div>
     </div>
   </a>
 
   <!-- Movies Tile -->
-  <a href="{% url 'movies:list' %}" class="tile-card">
-    <div class="card bg-black text-white shadow-sm h-100 border-warning border-opacity-50">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-film fs-3 text-warning"></i>
-            <span class="badge bg-warning text-dark rounded-pill fw-bold">{{ movies_watched_count }} Watched</span>
-          </div>
-          <h5 class="card-title fw-bold">Movies & Shows</h5>
-          <p class="card-text small text-white-50">
-            {% if latest_movie %}
-              Latest: <strong>{{ latest_movie.title|truncatechars:18 }}</strong>
-            {% else %}
-              Bollywood, Hollywood & Series
-            {% endif %}
-          </p>
+  <a href="{% url 'movies:list' %}" class="tile-card tile-movies">
+    <div class="tile-box shadow-sm">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <i class="bi bi-film fs-3"></i>
+          <span class="tile-badge">{{ movies_watched_count }} Watched</span>
         </div>
-        <span class="small text-warning-emphasis mt-2">Browse & watchlist &rarr;</span>
+        <h5 class="tile-title">Movies & Shows</h5>
+        <p class="tile-desc">
+          {% if latest_movie %}
+            Latest: <strong>{{ latest_movie.title|truncatechars:18 }}</strong>
+          {% else %}
+            Bollywood, Hollywood & Series
+          {% endif %}
+        </p>
+      </div>
+      <div class="tile-footer">
+        <span>Browse & watchlist &rarr;</span>
       </div>
     </div>
   </a>
 
   <!-- Notes Tile -->
-  <a href="{% url 'notes:list' %}" class="tile-card">
-    <div class="card bg-info text-dark shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-journal-text fs-3"></i>
-            <span class="badge bg-dark text-white rounded-pill">{{ notes_count }}</span>
-          </div>
-          <h5 class="card-title fw-bold">Notes</h5>
-          <p class="card-text small text-dark-emphasis">{{ notes_count }} note{{ notes_count|pluralize }} saved</p>
+  <a href="{% url 'notes:list' %}" class="tile-card tile-notes">
+    <div class="tile-box shadow-sm">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <i class="bi bi-journal-text fs-3"></i>
+          <span class="tile-badge">{{ notes_count }} Notes</span>
         </div>
-        <span class="small text-muted mt-2">Open notes &rarr;</span>
+        <h5 class="tile-title">Notes</h5>
+        <p class="tile-desc">{{ notes_count }} personal note{{ notes_count|pluralize }} saved</p>
+      </div>
+      <div class="tile-footer">
+        <span>Open notes &rarr;</span>
       </div>
     </div>
   </a>
 
   <!-- Checklist Tile -->
-  <a href="{% url 'checklist:list' %}" class="tile-card">
-    <div class="card bg-secondary text-white shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-check2-square fs-3"></i>
-            <span class="badge bg-white text-dark rounded-pill">{{ checklist_open_count }} Open</span>
-          </div>
-          <h5 class="card-title fw-bold">Checklist</h5>
-          <p class="card-text small opacity-75">{{ checklist_open_count }} pending task{{ checklist_open_count|pluralize }}</p>
+  <a href="{% url 'checklist:list' %}" class="tile-card tile-checklist">
+    <div class="tile-box shadow-sm">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <i class="bi bi-check2-square fs-3"></i>
+          <span class="tile-badge">{{ checklist_open_count }} Open</span>
         </div>
-        <span class="small text-white-50 mt-2">View checklist &rarr;</span>
+        <h5 class="tile-title">Checklist</h5>
+        <p class="tile-desc">{{ checklist_open_count }} pending task{{ checklist_open_count|pluralize }}</p>
+      </div>
+      <div class="tile-footer">
+        <span>View checklist &rarr;</span>
       </div>
     </div>
   </a>
 
   <!-- Reminders Tile -->
-  <a href="{% url 'reminders:list' %}" class="tile-card">
-    <div class="card bg-warning text-dark shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-between">
-        <div>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <i class="bi bi-bell fs-3"></i>
-            <span class="badge bg-dark text-white rounded-pill">{{ reminders_count }} Due</span>
-          </div>
-          <h5 class="card-title fw-bold">Reminders</h5>
-          <p class="card-text small text-dark-emphasis">{{ reminders_count }} upcoming reminder{{ reminders_count|pluralize }}</p>
+  <a href="{% url 'reminders:list' %}" class="tile-card tile-reminders">
+    <div class="tile-box shadow-sm">
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <i class="bi bi-bell fs-3"></i>
+          <span class="tile-badge">{{ reminders_count }} Due</span>
         </div>
-        <span class="small text-muted mt-2">Manage reminders &rarr;</span>
+        <h5 class="tile-title">Reminders</h5>
+        <p class="tile-desc">{{ reminders_count }} upcoming reminder{{ reminders_count|pluralize }}</p>
+      </div>
+      <div class="tile-footer">
+        <span>Manage reminders &rarr;</span>
       </div>
     </div>
   </a>
