@@ -36,70 +36,75 @@
 <body class="bg-body text-body min-vh-100 d-flex flex-column">
 
   <!-- Top Navigation Bar -->
-  <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top shadow-sm border-bottom mb-4">
-    <div class="container">
-      <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
-        <i class="bi bi-grid-1x2-fill text-primary"></i> Personal App
+  <nav class="navbar navbar-expand-xl bg-body-tertiary sticky-top shadow-sm border-bottom mb-4 py-2">
+    <div class="container-fluid px-3 px-md-4 px-xl-5">
+      <a class="navbar-brand fw-bold d-flex align-items-center gap-2 me-xl-4 py-1" href="{% url 'home' %}">
+        <i class="bi bi-grid-1x2-fill text-primary fs-4"></i>
+        <span class="fs-5 tracking-tight">Personal App</span>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler border-0 shadow-none p-1" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navMenu">
         {% if user.is_authenticated %}
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}"><i class="bi bi-house-door me-1"></i>Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'salah:dashboard' %}"><i class="bi bi-clock-history me-1"></i>Salah</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'quran:home' %}"><i class="bi bi-book me-1"></i>Quran</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'hadith:home' %}"><i class="bi bi-chat-square-quote me-1"></i>Hadith</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'books:list' %}"><i class="bi bi-book-half me-1"></i>Books</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'movies:list' %}"><i class="bi bi-film me-1"></i>Movies</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'streaks:dashboard' %}"><i class="bi bi-fire me-1 text-danger"></i>Streaks</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'notes:list' %}"><i class="bi bi-journal-text me-1"></i>Notes</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'checklist:list' %}"><i class="bi bi-check2-square me-1"></i>Checklist</a></li>
-            <li class="nav-item"><a class="nav-link" href="{% url 'reminders:list' %}"><i class="bi bi-bell me-1"></i>Reminders</a></li>
+          <ul class="navbar-nav me-auto mb-2 mb-xl-0 align-items-xl-center gap-1">
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'home' %}"><i class="bi bi-house-door"></i><span>Home</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'salah:dashboard' %}"><i class="bi bi-clock-history"></i><span>Salah</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'quran:home' %}"><i class="bi bi-book"></i><span>Quran</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'hadith:home' %}"><i class="bi bi-chat-square-quote"></i><span>Hadith</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'books:list' %}"><i class="bi bi-book-half"></i><span>Books</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'movies:list' %}"><i class="bi bi-film"></i><span>Movies</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'streaks:dashboard' %}"><i class="bi bi-fire text-danger"></i><span>Streaks</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'notes:list' %}"><i class="bi bi-journal-text"></i><span>Notes</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'checklist:list' %}"><i class="bi bi-check2-square"></i><span>Checklist</span></a></li>
+            <li class="nav-item"><a class="nav-link d-flex align-items-center gap-1 px-2.5 py-1.5" href="{% url 'reminders:list' %}"><i class="bi bi-bell"></i><span>Reminders</span></a></li>
           </ul>
 
-          <ul class="navbar-nav align-items-lg-center gap-1">
+          <ul class="navbar-nav ms-auto align-items-xl-center gap-2 mt-2 mt-xl-0">
             <!-- Theme Toggle Button (Light / Dark) -->
-            <li class="nav-item me-2">
-              <button id="themeToggleBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 px-3" type="button" aria-label="Toggle theme">
+            <li class="nav-item">
+              <button id="themeToggleBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1.5 px-3 py-1.5 shadow-sm" type="button" aria-label="Toggle theme">
                 <i id="themeIcon" class="bi bi-moon-stars-fill text-warning"></i>
                 <span id="themeLabel" class="small fw-semibold">Dark</span>
               </button>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'accounts:profile' %}">
-                <i class="bi bi-person-circle me-1"></i>{{ request.user.display_name|default:request.user.email }}
+              <a class="nav-link d-flex align-items-center gap-1.5 px-2.5 py-1.5 fw-semibold" href="{% url 'accounts:profile' %}">
+                <i class="bi bi-person-circle fs-5 text-primary"></i>
+                <span>{{ request.user.display_name|default:request.user.email }}</span>
               </a>
             </li>
             <li class="nav-item">
-              <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
+              <form method="post" action="{% url 'accounts:logout' %}" class="d-inline m-0">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-link nav-link px-2">Logout</button>
+                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1.5 d-flex align-items-center gap-1">
+                  <i class="bi bi-box-arrow-right"></i>
+                  <span>Logout</span>
+                </button>
               </form>
             </li>
           </ul>
         {% else %}
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+          <ul class="navbar-nav ms-auto mb-2 mb-xl-0 align-items-xl-center gap-2">
             <!-- Theme Toggle Button for Guests -->
-            <li class="nav-item me-2">
-              <button id="themeToggleBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 px-3" type="button" aria-label="Toggle theme">
+            <li class="nav-item">
+              <button id="themeToggleBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1.5 px-3 py-1.5 shadow-sm" type="button" aria-label="Toggle theme">
                 <i id="themeIcon" class="bi bi-moon-stars-fill text-warning"></i>
                 <span id="themeLabel" class="small fw-semibold">Dark</span>
               </button>
             </li>
             <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Log in</a></li>
-            <li class="nav-item"><a class="nav-link btn btn-primary text-white btn-sm px-3 ms-2" href="{% url 'accounts:signup' %}">Sign up</a></li>
+            <li class="nav-item"><a class="nav-link btn btn-primary text-white btn-sm px-3 rounded-pill" href="{% url 'accounts:signup' %}">Sign up</a></li>
           </ul>
         {% endif %}
       </div>
     </div>
   </nav>
 
-  <!-- Flash Messages -->
-  <main class="container flex-grow-1 pb-5">
+  <!-- Flash Messages & Main Content -->
+  <main class="container-fluid px-3 px-md-4 px-xl-5 flex-grow-1 pb-5">
     {% if messages %}
       <div class="row">
         <div class="col-12">

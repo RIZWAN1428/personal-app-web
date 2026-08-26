@@ -6,7 +6,7 @@ import json
 import logging
 import urllib.parse
 import urllib.request
-from datetime import datetime, time
+from datetime import date, datetime, time, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,22 @@ def format_to_12hr(time_str):
         return time_str
 
 
+HIJRI_MONTHS = {
+    1: "Muharram",
+    2: "Safar",
+    3: "Rabi' al-Awwal",
+    4: "Rabi' al-Thani",
+    5: "Jumada al-Awwal",
+    6: "Jumada al-Thani",
+    7: "Rajab",
+    8: "Sha'ban",
+    9: "Ramadan",
+    10: "Shawwal",
+    11: "Dhu al-Qi'dah",
+    12: "Dhu al-Hijjah",
+}
+
+
 def get_prayer_timings(city="Jaunpur", country="India", state="Uttar Pradesh", method=1, school=1, date_str=None):
     """
     Fetches daily prayer timings and Hijri date from Aladhan API.
@@ -60,7 +76,6 @@ def get_prayer_timings(city="Jaunpur", country="India", state="Uttar Pradesh", m
             data = json.loads(response.read().decode("utf-8"))
             if data.get("code") == 200:
                 timings = data["data"]["timings"]
-                # Clean timings strings (remove timezones like ' (IST)' if present)
                 clean_timings = {}
                 timings_12h = {}
                 for k, v in timings.items():
@@ -68,16 +83,31 @@ def get_prayer_timings(city="Jaunpur", country="India", state="Uttar Pradesh", m
                     clean_timings[k] = raw_t
                     timings_12h[k] = format_to_12hr(raw_t)
 
+                # Fetch adjusted Hijri date (-1 day offset for India/Subcontinent moonsighting)
+                target_dt = datetime.strptime(date_str, "%d-%m-%Y").date() if date_str else date.today()
+                adj_date_str = (target_dt - timedelta(days=1)).strftime("%d-%m-%Y")
+                hijri_formatted = f"12 Rabi' al-Awwal 1448 AH"
                 hijri = data["data"]["date"]["hijri"]
-                month_en = hijri["month"]["en"]
-                if month_en == "Rabī' al-awwal" or month_en == "Rabi' al-awwal":
-                    month_display = "Rab Awal"
-                else:
-                    month_display = month_en
 
-                hijri_formatted = f"{hijri['day']} {month_display} {hijri['year']} AH"
+                try:
+                    gtoh_url = f"https://api.aladhan.com/v1/gToH?date={adj_date_str}"
+                    gtoh_req = urllib.request.Request(gtoh_url, headers={"User-Agent": "PersonalApp-Salah/1.0"})
+                    with urllib.request.urlopen(gtoh_req, timeout=3) as gtoh_resp:
+                        gtoh_data = json.loads(gtoh_resp.read().decode("utf-8"))
+                        if gtoh_data.get("code") == 200:
+                            h = gtoh_data["data"]["hijri"]
+                            m_num = int(h["month"]["number"])
+                            m_name = HIJRI_MONTHS.get(m_num, h["month"]["en"])
+                            hijri_formatted = f"{h['day']} {m_name} {h['year']} AH"
+                            hijri = h
+                except Exception:
+                    # Fallback computation
+                    day_num = max(1, int(hijri.get("day", 13)) - 1)
+                    m_num = int(hijri.get("month", {}).get("number", 3))
+                    m_name = HIJRI_MONTHS.get(m_num, "Rabi' al-Awwal")
+                    hijri_formatted = f"{day_num} {m_name} {hijri.get('year', 1448)} AH"
+
                 gregorian = data["data"]["date"]["readable"]
-
                 next_prayer_info = calculate_next_prayer(clean_timings)
 
                 return {
@@ -101,7 +131,7 @@ def get_prayer_timings(city="Jaunpur", country="India", state="Uttar Pradesh", m
         "success": False,
         "timings": DEFAULT_TIMINGS,
         "timings_12h": timings_12h,
-        "hijri_date": "8 Rab Awal 1448 AH",
+        "hijri_date": "12 Rabi' al-Awwal 1448 AH",
         "hijri_raw": {},
         "gregorian_date": datetime.now().strftime("%d %b %Y"),
         "meta": {"timezone": "Asia/Kolkata"},
