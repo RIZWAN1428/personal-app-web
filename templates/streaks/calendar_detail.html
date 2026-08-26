@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% block title %}{{ habit.name }} — Streak Calendar — Personal App{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-5">
+  <!-- Top Navigation & Header -->
+  <div class="col-12">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'streaks:dashboard' %}" class="btn btn-outline-secondary rounded-pill px-3">
+          <i class="bi bi-arrow-left me-1"></i>All Streaks
+        </a>
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="p-2 bg-{{ habit.color_class }} text-white rounded-3 fs-5">
+              <i class="bi {{ habit.icon|default:'bi-fire' }}"></i>
+            </span>
+            <h1 class="h3 fw-bold mb-0">{{ habit.name }}</h1>
+          </div>
+          <span class="badge bg-secondary-subtle text-secondary mt-1">{{ habit.get_category_display }}</span>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'streaks:edit' habit.pk %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+        <a href="{% url 'streaks:delete' habit.pk %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+          <i class="bi bi-trash me-1"></i>Delete
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Streak Stats Card -->
+  <div class="col-12">
+    <div class="streak-hero-card p-4 shadow-sm">
+      <div class="row g-4 align-items-center">
+        <!-- Current Continuous Streak -->
+        <div class="col-md-5">
+          <div class="d-flex align-items-center gap-3">
+            <div class="p-3 bg-danger bg-opacity-10 text-danger rounded-circle">
+              <i class="bi bi-fire display-5"></i>
+            </div>
+            <div>
+              <span class="small text-uppercase text-muted fw-bold">Continuous Streak</span>
+              <h2 class="display-6 fw-bold text-danger mb-0" id="currentStreakDisplay">
+                🔥 <span id="streakCount">{{ stats.current_streak }}</span> Day{{ stats.current_streak|pluralize }}
+              </h2>
+              <div class="mt-1">
+                {% if stats.current_streak > 0 %}
+                  <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1" id="streakStatusBadge">
+                    <i class="bi bi-check-circle-fill me-1"></i>Continuous Streak Active
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1" id="streakStatusBadge">
+                    <i class="bi bi-pause-circle me-1"></i>Streak Broken (0 Days)
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics & Records -->
+        <div class="col-md-7">
+          <div class="row g-3 text-center text-md-start">
+            <div class="col-4">
+              <div class="p-3 bg-body rounded-4 border">
+                <span class="small text-muted d-block">Best Record</span>
+                <strong class="fs-5 text-warning" id="longestStreakDisplay">
+                  🏆 <span id="longestStreakCount">{{ stats.longest_streak }}</span> Day{{ stats.longest_streak|pluralize }}
+                </strong>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 bg-body rounded-4 border">
+                <span class="small text-muted d-block">Total Marked</span>
+                <strong class="fs-5 text-danger" id="totalMarkedDisplay">
+                  ❌ <span id="totalMarkedCount">{{ stats.total_days }}</span> Day{{ stats.total_days|pluralize }}
+                </strong>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 bg-body rounded-4 border">
+                <span class="small text-muted d-block">Today's Status</span>
+                <strong class="fs-6" id="todayStatusDisplay">
+                  {% if stats.completed_today %}
+                    <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Marked ❌</span>
+                  {% else %}
+                    <span class="text-muted"><i class="bi bi-circle me-1"></i>Pending</span>
+                  {% endif %}
+                </strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Date Selection Bar (Pick Date + Press OK) -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm bg-body-tertiary rounded-4 p-3 p-md-4">
+      <form id="markDateForm" method="post" action="{% url 'streaks:mark_date' habit.pk %}" class="row g-3 align-items-center">
+        {% csrf_token %}
+        <div class="col-auto">
+          <label for="selectDateInput" class="fw-bold form-label mb-0">
+            <i class="bi bi-calendar-event text-primary me-1"></i>Select Date:
+          </label>
+        </div>
+        <div class="col-auto">
+          <input type="date" id="selectDateInput" name="date" class="form-control rounded-pill px-3" value="{{ today_date|date:'Y-m-d' }}" required>
+        </div>
+        <div class="col-auto">
+          <button type="submit" id="okMarkBtn" class="btn btn-danger rounded-pill px-4 fw-semibold shadow-sm">
+            <i class="bi bi-x-lg me-1"></i>Mark with ❌ (OK)
+          </button>
+        </div>
+        <div class="col-12 col-lg text-lg-end">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>Select any date and press <strong>OK</strong>, or click any calendar day below to toggle the ❌ mark.
+          </small>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Interactive Monthly Calendar Grid -->
+  <div class="col-12">
+    <div class="calendar-container p-3 p-md-4">
+      <!-- Calendar Header & Navigation -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-3 border-bottom">
+        <div>
+          <h3 class="h4 fw-bold mb-0">
+            <i class="bi bi-calendar3 text-danger me-2"></i>{{ cal.month_name }} {{ cal.year }}
+          </h3>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <a href="?year={{ cal.prev_year }}&month={{ cal.prev_month }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="Previous Month">
+            <i class="bi bi-chevron-left me-1"></i>Prev
+          </a>
+          {% if not cal.is_current_month_view %}
+            <a href="{% url 'streaks:detail' habit.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+              Today
+            </a>
+          {% endif %}
+          <a href="?year={{ cal.next_year }}&month={{ cal.next_month }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="Next Month">
+            Next<i class="bi bi-chevron-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Calendar Weekday Headers -->
+      <div class="calendar-grid-header text-muted">
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+        <div>Sun</div>
+      </div>
+
+      <!-- Calendar Days Grid -->
+      <div class="calendar-grid-body" id="calendarGrid">
+        {% for week in cal.weeks %}
+          {% for day in week %}
+            <div class="calendar-day-cell {% if not day.is_current_month %}other-month{% endif %} {% if day.is_today %}today{% endif %} {% if day.is_marked %}marked{% endif %} {% if day.is_streak %}active-streak{% endif %}"
+                 data-date="{{ day.date_str }}"
+                 data-marked="{% if day.is_marked %}true{% else %}false{% endif %}"
+                 title="{{ day.date_str }} - Click to toggle ❌">
+              
+              <div class="d-flex justify-content-between align-items-center w-100">
+                <span class="day-number">{{ day.day_num }}</span>
+                {% if day.is_today %}
+                  <span class="badge bg-primary rounded-pill" style="font-size: 0.65rem;">Today</span>
+                {% endif %}
+              </div>
+
+              <div class="cross-mark-container">
+                {% if day.is_marked %}
+                  <div class="cross-mark-icon">❌</div>
+                {% else %}
+                  <div class="unmarked-hint">+ ❌</div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive JavaScript for Date Selection & Instant Calendar Marking -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const markEndpoint = "{% url 'streaks:mark_date' habit.pk %}";
+  const csrfToken = "{{ csrf_token }}";
+
+  const streakCount = document.getElementById('streakCount');
+  const streakStatusBadge = document.getElementById('streakStatusBadge');
+  const longestStreakCount = document.getElementById('longestStreakCount');
+  const totalMarkedCount = document.getElementById('totalMarkedCount');
+  const todayStatusDisplay = document.getElementById('todayStatusDisplay');
+  const selectDateInput = document.getElementById('selectDateInput');
+  const markDateForm = document.getElementById('markDateForm');
+
+  const todayStr = "{{ today_date|date:'Y-m-d' }}";
+
+  function updateUIStats(data) {
+    if (!data.success) return;
+
+    if (streakCount) streakCount.textContent = data.current_streak;
+    if (longestStreakCount) longestStreakCount.textContent = data.longest_streak;
+    if (totalMarkedCount) totalMarkedCount.textContent = data.total_days;
+
+    if (streakStatusBadge) {
+      if (data.current_streak > 0) {
+        streakStatusBadge.className = "badge bg-success-subtle text-success rounded-pill px-3 py-1";
+        streakStatusBadge.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Continuous Streak Active';
+      } else {
+        streakStatusBadge.className = "badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1";
+        streakStatusBadge.innerHTML = '<i class="bi bi-pause-circle me-1"></i>Streak Broken (0 Days)';
+      }
+    }
+
+    // Update cell state in calendar
+    const cells = document.querySelectorAll('.calendar-day-cell');
+    cells.forEach(cell => {
+      const cellDate = cell.getAttribute('data-date');
+      
+      if (cellDate === data.date) {
+        cell.setAttribute('data-marked', data.is_marked ? 'true' : 'false');
+        if (data.is_marked) {
+          cell.classList.add('marked');
+          cell.querySelector('.cross-mark-container').innerHTML = '<div class="cross-mark-icon">❌</div>';
+        } else {
+          cell.classList.remove('marked');
+          cell.querySelector('.cross-mark-container').innerHTML = '<div class="unmarked-hint">+ ❌</div>';
+        }
+      }
+
+      // Update streak border highlight
+      if (data.active_streak_dates && data.active_streak_dates.includes(cellDate)) {
+        cell.classList.add('active-streak');
+      } else {
+        cell.classList.remove('active-streak');
+      }
+
+      // Update Today's status display if today was toggled
+      if (cellDate === todayStr && todayStatusDisplay) {
+        if (cell.getAttribute('data-marked') === 'true') {
+          todayStatusDisplay.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Marked ❌</span>';
+        } else {
+          todayStatusDisplay.innerHTML = '<span class="text-muted"><i class="bi bi-circle me-1"></i>Pending</span>';
+        }
+      }
+    });
+  }
+
+  async function postMarkDate(targetDate) {
+    const formData = new FormData();
+    formData.append('date', targetDate);
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    formData.append('is_ajax', '1');
+
+    try {
+      const response = await fetch(markEndpoint, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: formData,
+      });
+      if (response.ok) {
+        const data = await response.json();
+        updateUIStats(data);
+      }
+    } catch (err) {
+      console.error("Failed to mark date:", err);
+    }
+  }
+
+  // Handle clicking on any calendar day cell
+  document.querySelectorAll('.calendar-day-cell').forEach(cell => {
+    cell.addEventListener('click', function(e) {
+      const targetDate = this.getAttribute('data-date');
+      if (targetDate) {
+        if (selectDateInput) {
+          selectDateInput.value = targetDate;
+        }
+        postMarkDate(targetDate);
+      }
+    });
+  });
+
+  // Handle Date Selector Form submit
+  if (markDateForm) {
+    markDateForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const chosenDate = selectDateInput ? selectDateInput.value : todayStr;
+      if (chosenDate) {
+        postMarkDate(chosenDate);
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

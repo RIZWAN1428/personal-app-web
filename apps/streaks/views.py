@@ -1,18 +1,18 @@
 """
-Views for Streak Tracker dashboard, habit management, and 1-click daily logging.
+Views for Streak Tracker dashboard, habit management, task calendar detail, and date-marking.
 """
-from datetime import date
+from datetime import date, datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
 from .forms import HabitForm
 from .models import Habit, HabitLog
-from .services import ensure_default_habits, get_habit_stats
+from .services import ensure_default_habits, get_habit_stats, get_month_calendar_data
 
 
 class StreakDashboardView(LoginRequiredMixin, TemplateView):
@@ -54,6 +54,98 @@ class StreakDashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class HabitCalendarDetailView(LoginRequiredMixin, DetailView):
+    """
+    Shows task calendar view where user can select any date, press OK to place
+    cross sign (❌), and see continuous streak vs 0 days.
+    """
+    model = Habit
+    template_name = "streaks/calendar_detail.html"
+    context_object_name = "habit"
+
+    def get_queryset(self):
+        return Habit.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        habit = self.object
+
+        today = date.today()
+        year = self.request.GET.get("year")
+        month = self.request.GET.get("month")
+
+        try:
+            year = int(year) if year else today.year
+            month = int(month) if month else today.month
+        except (ValueError, TypeError):
+            year = today.year
+            month = today.month
+
+        calendar_data = get_month_calendar_data(habit, year=year, month=month)
+        context["cal"] = calendar_data
+        context["stats"] = calendar_data["stats"]
+        context["today_date"] = today
+        return context
+
+
+@login_required
+def mark_habit_date(request, pk):
+    """
+    Endpoint called when user selects a date & clicks OK, or clicks a calendar cell.
+    Places or removes the cross (❌) on that date and recalculates streak.
+    """
+    if request.method != "POST":
+        return redirect("streaks:detail", pk=pk)
+
+    habit = get_object_or_404(Habit, pk=pk, user=request.user)
+    date_str = request.POST.get("date")
+
+    if date_str:
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            target_date = date.today()
+    else:
+        target_date = date.today()
+
+    # Toggle or create log
+    log, created = HabitLog.objects.get_or_create(
+        user=request.user,
+        habit=habit,
+        date=target_date,
+        defaults={"is_completed": True},
+    )
+
+    if not created:
+        log.is_completed = not log.is_completed
+        log.save(update_fields=["is_completed"])
+
+    stats = get_habit_stats(habit)
+
+    # AJAX response
+    if request.headers.get("x-requested-with") == "XMLHttpRequest" or request.POST.get("is_ajax"):
+        return JsonResponse({
+            "success": True,
+            "date": target_date.isoformat(),
+            "is_marked": log.is_completed,
+            "current_streak": stats["current_streak"],
+            "longest_streak": stats["longest_streak"],
+            "total_days": stats["total_days"],
+            "active_streak_dates": [d.isoformat() for d in stats["active_streak_dates"]],
+        })
+
+    if log.is_completed:
+        messages.success(
+            request,
+            f"❌ Marked {target_date.strftime('%b %d, %Y')} for '{habit.name}'! Continuous Streak: {stats['current_streak']} Day(s)."
+        )
+    else:
+        messages.info(request, f"Removed cross mark for {target_date.strftime('%b %d, %Y')}.")
+
+    redirect_url = reverse("streaks:detail", kwargs={"pk": pk})
+    return HttpResponseRedirect(f"{redirect_url}?year={target_date.year}&month={target_date.month}")
+
+
 @login_required
 def toggle_habit_log(request, pk):
     """1-Click / AJAX endpoint to check off or uncheck a habit for today."""
@@ -68,7 +160,6 @@ def toggle_habit_log(request, pk):
     )
 
     if not created:
-        # Toggle completion status
         log.is_completed = not log.is_completed
         log.save(update_fields=["is_completed"])
 
@@ -127,3 +218,4 @@ class HabitDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Habit streak removed.")
         return super().delete(request, *args, **kwargs)
+
